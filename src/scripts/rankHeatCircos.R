@@ -2,25 +2,24 @@
 library(circlize)
 library(RColorBrewer)
 
-rankheatplotCircos <- function(data, format = "percentage") {
+rhp.rankheatplotCircos <- function(data, format = "percentage") {
   data <- as.data.frame(data)
-  chartData <- prepData(data)
+  chartData <- rhp.prepData(data)
   rns <- rownames(chartData)
   chartData[nrow(chartData) + 1, ] <- colnames(chartData)
   rownames(chartData) <- c(rns, "Outcome")
   pal = brewer.pal(11, "RdYlGn") # will return the hex values
   breaks <-
     seq(0, 100, 10) # assume for now, but need checks later (on format)
-  col_func <- colorRamp2(breaks, pal)
+  colFun <- colorRamp2(breaks, pal)
 
   # wrap color function to swallow string values (i.e., labels)
   w_cf <- function(val) {
     clr = 'white'
     clr <- ifelse(!is.na(as.numeric(val)),
-                  clr <- col_func(as.numeric(val)),
+                  clr <- colFun(as.numeric(val)),
                   clr)
     clr
-    
   }
   
   m = nrow(chartData)
@@ -76,8 +75,12 @@ rankheatplotCircos <- function(data, format = "percentage") {
     bg.border = NA
   )
   
+  lgd = ComplexHeatmap::Legend(col_fun = colFun, title = "Legend")
+  draw(lgd, x = unit(6, "mm"), y = unit(6, "mm"), just = c("left", "bottom"))
+  
 }
-prepData <- function(df, format = "percentage") {
+
+rhp.prepData <- function(df, format = "percentage") {
   # drop rows that don't have a label
   df <- df[!is.na(df[, 1]),]
   
@@ -95,3 +98,9 @@ prepData <- function(df, format = "percentage") {
   rownames(df) <- rns
   df
 }
+
+# Shiny options:  
+# toggle which outcomes are visible
+# select palette (ryg, greyscale, colorblind)
+# toggle treatment labels and values
+# show outcomes as abbreviations with guide/legend outside plot

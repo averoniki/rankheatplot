@@ -2,8 +2,8 @@ library(readxl)
 library(ComplexHeatmap)
 setwd('/home/rstudio/src')
 
-source('/home/rstudio/src/fun/rankheatPlotComp.R')
-source('/home/rstudio/src/fun/rankHeatCircos.R')
+source('/home/rstudio/src/scripts/rankheatPlotComp.R')
+source('/home/rstudio/src/scripts/rankHeatCircos.R')
 
 #percentage example
 run_pct_example <- function() {
@@ -26,7 +26,7 @@ run_nnt_example <- function() {
 #circos examplse
 run_circos_example <- function() {
   data <- read_excel("./data/allstudy.xlsx",   sheet = 1)
-  rankheatplotCircos <- rankheatplotCircos(data, "percentage")
+  rhp.rankheatplotCircos(data, "percentage")
 }
 
 run_all_examples <- function() {
