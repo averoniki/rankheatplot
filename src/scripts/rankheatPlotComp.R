@@ -44,7 +44,8 @@ prepareData <- function(data, format) {
     # remove treatment colname and get vector of outcome labels
     colnames(df)[1] <- ""
     outcomes <- colnames(df)[-1]
-    treatments <- c(df[[1]]) # treatment labels are 'treatments'
+    # treatment labels are 'treatments'
+    treatments <- c(df[[1]]) 
     # move treatment labels into rownames and drop treatment label column
     rownames(df) <- treatments
     df <- df[, -1]

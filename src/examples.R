@@ -25,8 +25,10 @@ run_nnt_example <- function() {
 
 #circos examplse
 run_circos_example <- function() {
-  data <- read_excel("./data/allstudy.xlsx",   sheet = 1)
-  rhp.rankheatplotCircos(data, "percentage")
+  data <- read_excel("./data/allstudy.xlsx", sheet = 1)
+  df <- as.data.frame(data)
+  chartData <- rhp.prepData(df)
+  rhp.rankheatplotCircos(chartData, "percentage")
 }
 
 run_all_examples <- function() {
