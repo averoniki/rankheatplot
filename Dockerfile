@@ -13,6 +13,7 @@ RUN install2.r --error \
     shiny \
     shinycssloaders \
     shinyjs \
+    stringr \
     rmarkdown \
     writexl
 

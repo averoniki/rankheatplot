@@ -1,14 +1,8 @@
-#
-#'Purpose is to get some basic toggle logic going regarding:
-#'Validation: https://www.rdocumentation.org/packages/shiny/versions/1.7.4/topics/validate
-#'shinyjs input toggling: https://github.com/daattali/shinyjs
-#'
-#'TODO: is it possible to move them into components?
-#'useful faq: https://deanattali.com/blog/advanced-shiny-tips/
-# 'validation might be only important on input data, since everything else is a selection
-
 library(shiny)
 library(shinyjs)
+
+#' Simple demo of hide/show with shinyjs 
+#' Can remove once dynamic-tabs is a little more mature
 
 ui <- shinyUI(navbarPage(
   "Rank-Heat Plot",

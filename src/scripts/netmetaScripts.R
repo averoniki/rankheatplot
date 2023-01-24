@@ -3,7 +3,7 @@ library(netmeta)
 
 source("/home/rstudio/src/scripts/rankHeatCircos.R")
 
-#' @param pth path to excel sheet 
+#' @param pth path to excel sheet
 extractSheets <- function(pth) {
   sheets <- excel_sheets(pth)
   output <- list()
@@ -16,6 +16,19 @@ extractSheets <- function(pth) {
 
 #' convert arm to contrast
 #' TODO: arguments are currently defaults and need to be parsed properly
+#'
+#' The data can be categorized in three ways: Binary, Continuous, Time-to-event
+#' Category of data will affect the arguments passed to `pairwise`
+#' 1. Binary: event = r, n = n
+#' Data.pair <- pairwise(treat = t, event = r, n = n, studlab = id, data= Data, sm="OR")
+#' 2. Continuous: mean = m, std.dev = sd, n = n
+#' Data.pair <- pairwise(treat = t, n = n, mean = m, sd = sd, studlab = id, data=Data, sm="MD")
+#' 3. time-to-even: events = d, time = time
+#' Data.pair <- pairwise(treat = t, event = d, time = time, studlab = id, data=Data, sm="IRR") 
+#' For all, treatment = t, data = data, studlab = id
+#' 
+#' note that all of these arguments are columns
+#'
 #' @param dataType can be: r (?), n, mean, sd, TE, SE
 #' @param data dataframe
 armToContrast <- function(data, dataType) {
@@ -28,29 +41,36 @@ armToContrast <- function(data, dataType) {
       data = data,
       sm = "OR"
     )
-  
-  cons <-
-    netconnection(result[['treat1']], result[['treat2']], result[['studlab']], data = result)
-  if (cons$n.subnets > 1) {
-    # raise error
-  }
   result
 }
 
 #' @param data contrast-formatted data
-#' @param sm: OR, SMD, RR, HR
-#' @param ref: AKA reference.group = the reference treatment (?)
-#' @param common: boolean, if true then random is false and vice-versa
-#' @param method.tau: rml, ml, dl -- only if random=T or NULL(?)
+#' @param sm OR, SMD, RR, HR, RD, MD, ROM, IRR
+#' Note: the above will depend on data type:
+#' Binary: OR, RR, RD
+#' Continuous: MD, SMF, ROM
+#' Time-to-even: IRR
+#' Survival: HR
+#' @param common boolean, if true then random is false and vice-versa
+#' @param method.tau rml, ml, dl -- only if random=T or NULL(?)
+#' @param small.values
 runNetmeta <- function(data, sm, ref, common, method.tau) {
-  netmeta(
+  netmetaRes <- netmeta(
     data,
     sm = sm,
-    ref = ref,
     common = common,
     random = !common,
     method.tau = method.tau
   )
+  
+  cons <-
+    netconnection(netmetaRes[['treat1']], netmetaRes[['treat2']], netmetaRes[['studlab']], data = netmetaRes)
+  if (cons$n.subnets > 1) {
+    stop("User should update their data!")
+  }
+  
+  netmetaRes
+  
 }
 
 #' @param data results of netmeta (a list)
@@ -77,17 +97,19 @@ rankToDf <- function(ranking, outcome) {
   df
 }
 
-#' @oaram data a dataframe (probably an excel sheet)
+#' @oaram data a dataframe
 #' @oaram outcome string, name of outcome
 runWithDefaults <- function(data, outcome) {
   contrastData <- armToContrast(data, 'unused')
   netmetaData <- runNetmeta(contrastData, 'OR', "PLAC", T, "REML")
+  
   rankData <- getScores(netmetaData, 'P-Score', 'good', T)
   # note ranking.common v ranking.random should be option
   rankToDf(rankData$ranking.common, outcome)
 }
 
-runNetmetaTest <- function (plt=F) {
+#' Sanity check for our test data
+runNetmetaTest <- function (plt = F) {
   sheets <-
     extractSheets('/home/rstudio/src/data/Safety AD Data RCT.xlsx')
   
@@ -98,9 +120,11 @@ runNetmetaTest <- function (plt=F) {
     runWithDefaults(df, outcomes[i])
   })
   
-  df <- Reduce(function(a, b) merge(a, b, by = "Treatment", all = TRUE),  results)
+  df <-
+    Reduce(function(a, b)
+      merge(a, b, by = "Treatment", all = TRUE),  results)
   
-  if(plt){
+  if (plt) {
     data <- rhp.prepData(df)
     rhp.rankheatplotCircos(data)
   }
