@@ -12,7 +12,7 @@ isAllNumeric <- function(vec){
 formatData <- function(vec) {
   # check all are numeric
   if (isAllNumeric(vec)) {
-    round(as.numeric(vec), 3)
+    round(as.numeric(vec), 0)
   } else {
     vec
   }
