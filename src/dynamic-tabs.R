@@ -127,20 +127,25 @@ server <- function(input, output) {
     updateTabsetPanel(inputId = "dynamicTabs", selected = rev(names(sheetList()))[1])
   })
   
-  # Observe changes (via loop) and update visibility/choices
+  # Observe changes and update visibility/choices
   observe({
-    # group options together
+    shinyjs::disable("submit")
+    # group options together and key by sheet name
     options <- groupValues(input, names(sheetList()))
     # loop through options and update ui as needed
     for (sheetName in names(options)) {
       for (option in names(visibilityUpdaters)) {
         visibilityUpdaters[[option]]$update(options, sheetName)
       }
-      
     }
+    # if there are no missing fields, enable submit button
+    if (length(getMissingOptions(options)) == 0) {
+      shinyjs::enable('submit')
+    }
+    
   })
   
-  # on submit, we'll build the option group again and validate
+  # on submit, we'll make sure that the sheets have the right columns
   observeEvent(input$submit, {
     
   })
@@ -150,8 +155,9 @@ server <- function(input, output) {
 
 ### HELPERS
 
-#' TODO: these functions should come with the sheet contents b/c we need to validate
-#' that the columns actually exist
+#' TODO: functions should be called with corresponding DFs b/c the main validation
+#' will be involve ensuring that the dataframes have the correct columns for the specified
+#' outcome type
 validators <- list(
   dataFormat = list(
     key = "a",
@@ -218,25 +224,52 @@ visibilityUpdaters <- list(
       model <- allValues[[sheetName]][['model']]
       selector <- paste0("#", id)
       # always start by enabling everything...
-      print(id)
-      print(selector)
       shinyjs::show(selector = selector)
       if (!is.null(model)) {
         if (model == 'common') {
-          # wipe out value and hide
-          print("updating")
           updateRadioButtons(inputId = id, selected = character(0))
           shinyjs::hide(selector = selector)
         }
       }
     }
   )
-  
 )
 
-#' @param id string, the id (without pound sign) of the radio element
+#' Determine whether the given set of options is complete
+#' if not complete, return a list of sheets and missing fields
+#' @param optionSet list, the list of set options, keyed by sheet name
+getMissingOptions <- function(optionSet) {
+  missing <- list()
+  options <-
+    c("dataFormat",
+      "methodTau",
+      "method",
+      "model",
+      "outcomeType",
+      "sm",
+      "smallValues")
+  
+  for (sheetName in names(optionSet)) {
+    for (i in 1:length(options)) {
+      if (options[i] == 'methodTau' &&
+          !is.null(optionSet[[sheetName]][['model']]) &&
+          optionSet[[sheetName]][['model']] == 'common') {
+        
+      } else if (is.null(optionSet[[sheetName]][[options[i]]])) {
+        if (is.null(missing[[sheetName]])) {
+          missing[[sheetName]] <- list()
+        }
+        missing[[sheetName]][[options[i]]] <- TRUE
+      }
+    }
+  }
+  missing
+}
+
+#' @param id string, the id (not selector) of the radio group
 #' @param values vector, the choices that are NOT allowed
-#' @param selected string | NULL, the current selection
+#' @param selected string | NULL, the current selection value
+#' @returns void
 disableOptions <- function(id, values, selected) {
   # if selected value is in the disallowed values, set to null
   if (!is.null(selected) && selected %in% values) {
@@ -245,17 +278,26 @@ disableOptions <- function(id, values, selected) {
   sapply(values, disableOption, id)
 }
 
+#' disable an option within a radio group
+#' @param value string, the value of the option
+#' @param id string, the id (not selector) of the option group
+#' @returns void
 disableOption <- function(value, id) {
   selector <- getRadioInputSelector(id, value)
   shinyjs::disable(selector = selector)
 }
 
+# return the selector for the radio option w/ given value and parent id
+#' @param id string, the id (not selector) of the radio group
+#' @param value string, the value of the option
+#' @returns string
 getRadioInputSelector <- function(id, value) {
   paste0("#", id, " [type=radio][value=", value, "]")
 }
 
 #' @param valueList the list of variables, probably reactiveValues
 #' @param prefixVec vector of prefixes, probably list of sheets
+#' @returns list
 groupValues <- function(valueList, prefixVec) {
   ret <- list()
   for (prefix in prefixVec) {
@@ -275,8 +317,8 @@ groupValues <- function(valueList, prefixVec) {
   ret
 }
 
-
 #' @param pth path to excel sheet
+#' @returns list of dataframes
 extractSheets <- function(pth) {
   sheets <- excel_sheets(pth)
   output <- list()
@@ -289,18 +331,3 @@ extractSheets <- function(pth) {
 
 # Run the application
 shinyApp(ui = ui, server = server)
-
-
-# List of inputs:
-# dataFormat: Arm Level | Contrast Level
-# outcomeType: Binary | Continuous | TTE | Survival
-# effect_size: OR | RD | MD | SMD | ROM | IRR | HR (choice depends on outcomeType)
-# we also want to validate that correct columns exist in sheet (see netmeta-flow.drawio) based on outcome
-# small_values: good | bad
-# model: common | random
-# method.tau: REML | ML | DL (only if effect is random)
-# rank_statistic: SUCRA | P-Score
-
-# For form:
-# if dataFormat == Arm Level, disable Survival
-# then constrain effect_size choices based on outcomeType
