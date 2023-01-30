@@ -1,101 +1,496 @@
 library(shiny)
 library(rmarkdown)
 library(shinycssloaders)
+library(stringr)
+source("/home/rstudio/src/scripts/rankHeatCircos.R")
 
-source("./scripts/rankHeatCircos.R")
-
-# Shiny options:
-# toggle which outcomes are visible
-# select palette (ryg, greyscale, colorblind)
-# toggle treatment labels and values
-# show outcomes as abbreviations with guide/legend outside plot
-
-# Define UI for application that draws a histogram
-ui <- shinyUI(navbarPage(
-  "Rank-Heat Plot",
-  tabPanel(title = "Upload data",
-           fluidRow(
-             column(4, fluidRow(column(
-               12,
-               fileInput(
-                 accept = c(
-                   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                   "application/vnd.ms-excel",
-                   ".csv"
-                 ),
-                 inputId = "userData",
-                 label = h3("Upload a preprocessed csv or .xlsx file")
-               )
-             )), column(
-               12,
-               checkboxGroupInput(inputId = "outcomeFilters", label = "")
+ui <-
+  shinyUI(navbarPage(
+    "RankHeat Plot",
+    useShinyjs(),
+    tabPanel(title = "Run",
+             fluidRow(
+               column(4,
+                      fluidRow(column(
+                        12,
+                        fileInput(
+                          accept = c(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "application/vnd.ms-excel"
+                          ),
+                          inputId = "userData",
+                          label = h3("Upload an .xlsx file")
+                        )
+                      )), fluidRow(column(
+                        12, actionButton("submit", "Submit")
+                      )), fluidRow(column(
+                        12, div(uiOutput("sheetValidationHeading")
+                                ,
+                                tags$ul(uiOutput(
+                                  "sheetValidationMsg"
+                                )))
+                      ))),
+               column(8,
+                      fluidRow(column(
+                        12,
+                        shiny::tabsetPanel(id = "dynamicTabs")
+                      )))
+             ),
+             fluidRow(
+               column(6,
+                      plotOutput(
+                        "heatmap", width = "100%", height = "700px"
+                      )),
+               column(6,
+                      tableOutput("dataTable"))
              )),
-             column(8, shinycssloaders::withSpinner(
-               plotOutput("heatmap", width = "100%", height = "700px")
-             ))
-           )),
-  
-  tabPanel(title = "About",
-           fluidRow(htmlOutput("about"))),
-))
-
-processInput <- function(pth) {
-  if (!is.na(excel_format(pth))) {
-    tbl <- read_xlsx(pth, 1)
-  } else {
-    tbl <- read.csv(pth)
-  }
-  as.data.frame(tbl)
-}
+    tabPanel(title = "About",
+             fluidRow(htmlOutput("about"))),
+  ))
 
 server <- function(input, output) {
-  userData <- reactive(input$userData)
-  
-  userTbl <- reactive({
-    if (!is.null(userData())) {
-      processed <- processInput(userData()$datapath)
-      rhp.prepData(processed)
-    }
-  })
-  
-  outcomeFilters <- reactive(input$outcomeFilters)
-  
-  filteredUserTbl <- reactive({
-    if (!is.null(userTbl()) &&
-        !is.null(input$outcomeFilters)) {
-      #select only rows with filter names selected
-      if (length(outcomeFilters()) == 0) {
-        
-      } else {
-        userTbl()[, colnames(userTbl()) %in% input$outcomeFilters]
-      }
-    }
-  })
-  
-  heatmap <- reactive({
-    if (!is.null(filteredUserTbl())) {
-      rhp.rankheatplotCircos(filteredUserTbl())
-    }
-  })
-  
-  output$heatmap <- renderPlot({
-    heatmap()
-  })
-  
   output$about <- renderUI({
     includeHTML(path = "about.html")
   })
   
-  observe({
-    if (!is.null(userTbl())) {
-      updateCheckboxGroupInput(
-        inputId = "outcomeFilters",
-        label = "Outcome Filters",
-        choices = colnames(userTbl()),
-        selected = colnames(userTbl())
-      )
+  userData <- reactive(input$userData)
+  
+  sheetList <- reactive({
+    # reset ui on upload
+    output$sheetValidationHeading <- renderText("")
+    output$sheetValidationMsg <- renderUI(list())
+    if (!is.null(userData())) {
+      extractSheets(userData()$datapath)
     }
   })
+  
+  # BUILDING THE FORM
+  
+  #' This will create the UI with an identical tab for each uploaded sheet
+  observe({
+    shinyjs::runjs("$('#dynamicTabs li').remove()")
+    for (name in names(sheetList())) {
+      shiny::prependTab(inputId = "dynamicTabs",
+                        shiny::tabPanel(title = name,
+                                        fluidRow(
+                                          column(
+                                            4,
+                                            div(
+                                              id = paste0(name, "_option_dataFormat"),
+                                              radioButtons(
+                                                inputId = paste0(name, "_option_dataFormat"),
+                                                label = "Select Data Format",
+                                                choiceNames = c("Arm Level", "Contrast Level"),
+                                                choiceValues = c("arm", "contrast"),
+                                                selected = character(0)
+                                              )
+                                            ),
+                                            div(
+                                              id = paste0(name, "_option_outcomeType"),
+                                              radioButtons(
+                                                inputId = paste0(name, "_option_outcomeType"),
+                                                label = "Select Outcome Type",
+                                                choiceNames = c("Binary", "Continuous", "Time to Event", "Survival"),
+                                                choiceValues = c("binary", "continuous", "tte", "survival"),
+                                                selected = character(0)
+                                              )
+                                            )
+                                          ),
+                                          column(
+                                            4,
+                                            div(
+                                              id = paste0(name, "_option_sm"),
+                                              radioButtons(
+                                                inputId = paste0(name, "_option_sm"),
+                                                label = "Select Effect Size",
+                                                choiceNames = c("HR", "IRR", "MD", "OR", "RD", "ROM", "RR", "SMD"),
+                                                choiceValues = c("hr", "irr", "md", "or", "rd", "rom", "rr", "smd"),
+                                                selected = character(0)
+                                              )
+                                            ),
+                                            div(
+                                              id = paste0(name, "_option_smallValues"),
+                                              radioButtons(
+                                                inputId = paste0(name, "_option_smallValues"),
+                                                label = "Select Small Values",
+                                                choiceNames = c("Good", "Bad"),
+                                                choiceValues = c("good", "bad"),
+                                                selected = character(0)
+                                              )
+                                            )
+                                          ),
+                                          column(
+                                            4,
+                                            div(
+                                              id = paste0(name, "_option_model"),
+                                              radioButtons(
+                                                inputId = paste0(name, "_option_model"),
+                                                label = "Select Model",
+                                                choiceNames = c("Common effect", "Random effects"),
+                                                choiceValues = c("common", "random"),
+                                                selected = character(0)
+                                              )
+                                            ),
+                                            div(
+                                              id = paste0(name, "_option_methodTau"),
+                                              radioButtons(
+                                                inputId = paste0(name, "_option_methodTau"),
+                                                label = "Select Method.tau",
+                                                choiceNames = c("REML", "ML", "DL"),
+                                                choiceValues = c("reml", "ml", "dl"),
+                                                selected = character(0)
+                                              )
+                                            ),
+                                            div(
+                                              id = paste0(name, "_option_method"),
+                                              radioButtons(
+                                                inputId = paste0(name, "_option_method"),
+                                                label = "Select Rank Statistic",
+                                                choiceNames = c("SUCRA", "P-Score"),
+                                                choiceValues = c("SUCRA", "P-score"),
+                                                selected = character(0)
+                                              )
+                                            )
+                                          )
+                                        )))
+    }
+    updateTabsetPanel(inputId = "dynamicTabs", selected = rev(names(sheetList()))[1])
+  })
+  
+  # Observe changes and update visibility/choices
+  observe({
+    shinyjs::disable("submit")
+    # group options together and key by sheet name
+    options <- groupValues(input, names(sheetList()))
+    # loop through options and update ui as needed
+    for (sheetName in names(options)) {
+      for (option in names(visibilityUpdaters)) {
+        visibilityUpdaters[[option]]$update(options, sheetName)
+      }
+    }
+    # if there are no missing fields, enable submit button
+    if (length(getMissingOptions(options)) == 0) {
+      shinyjs::enable('submit')
+    }
+  })
+  
+  # on submit, we'll make sure that the sheets have the right columns
+  observeEvent(input$submit, {
+    options <- groupValues(input, names(sheetList()))
+    invalid <- validateSheets(options, sheetList())
+    # TODO: this needs to become rendered as text
+    if (length(invalid)) {
+      msg <- list()
+      for (sheetName in names(invalid)) {
+        msg[[sheetName]] <- tags$li(paste0(
+          str_to_upper(sheetName),
+          ": ",
+          paste0(invalid[[sheetName]], collapse = ", "),
+          "\n"
+        ))
+      }
+      output$sheetValidationHeading <-
+        renderText("The following sheets are missing required columns:")
+      output$sheetValidationMsg <- renderUI(msg)
+    } else {
+      output$sheetValidationHeading <- NULL
+      output$sheetValidationMsg <- renderUI(NULL)
+      submitAnalysis(options, sheetList(), output)
+    }
+  })
+  
+}
+
+#' list of functions, one per possible input
+#' each is in charge of showing/hiding itself and setting its value or options
+#' according to 'upstream' selections
+visibilityUpdaters <- list(
+  outcomeType = list(
+    update = function(allValues, sheetName) {
+      id <- paste0(sheetName, "_option_outcomeType")
+      dataFormat <- allValues[[sheetName]][['dataFormat']]
+      outcomeType <- allValues[[sheetName]][['outcomeType']]
+      #enable by default
+      shinyjs::enable(selector = paste0("#", id))
+      # if user has selected 'arm', apply constraints
+      if (!is.null(dataFormat) && dataFormat == "arm") {
+        disableOptions(id, "survival", selected = outcomeType)
+      }
+    }
+  ),
+  effectSize = list(
+    update = function(allValues, sheetName) {
+      id <- paste0(sheetName, "_option_sm")
+      outcomeType = allValues[[sheetName]][['outcomeType']]
+      selected = allValues[[sheetName]][['sm']]
+      # always start by enabling everything...
+      shinyjs::enable(selector = paste0("#", id))
+      if (!is.null(outcomeType)) {
+        if (outcomeType == 'binary') {
+          disableOptions(id, c('smd', 'hr', 'md', 'rom', 'irr'), selected)
+        } else if (outcomeType == 'continuous') {
+          disableOptions(id, c('rr', 'hr', 'or', 'rd', 'irr'), selected)
+        } else if (outcomeType == 'tte') {
+          disableOptions(id, c('rr', 'hr', 'or', 'rd', 'rom', 'md', 'smd'), selected)
+        } else if (outcomeType == 'survival') {
+          disableOptions(id, c('rr', 'irr', 'or', 'rd', 'rom', 'md', 'smd'), selected)
+        }
+      }
+    }
+  ),
+  methodTau = list(
+    update = function(allValues, sheetName) {
+      id <- paste0(sheetName, "_option_methodTau")
+      model <- allValues[[sheetName]][['model']]
+      selector <- paste0("#", id)
+      # always start by enabling everything...
+      shinyjs::show(selector = selector)
+      if (!is.null(model)) {
+        if (model == 'common') {
+          updateRadioButtons(inputId = id, selected = character(0))
+          shinyjs::hide(selector = selector)
+        }
+      }
+    }
+  )
+)
+
+#' validate that sheets have the appropriate columns for the options selected
+#' @param optionSet list, list of selected options, keyed by sheet name
+#' @param sheets list, list of dataframes, keyed by sheet name
+validateSheets <- function(optionSet, sheets) {
+  results <- list()
+  for (sheetName in names(sheets)) {
+    missing <-
+      validateSheet(optionSet[[sheetName]], sheets[[sheetName]])
+    if (length(missing)) {
+      results[[sheetName]] <- missing
+    }
+  }
+  results
+}
+
+#' Confirm that the sheet has the appropriate columns for the options selected
+#' @param options list, list of selected options
+#' @param sheet dataframe, a user-submitted sheet
+#' @returns vector, a vector of the missing field names
+validateSheet <- function(options, sheet) {
+  # if dataType is arm, then we have to be sure they have the right columns for
+  # the outcomeType they selected, as this will be passed on to pairwise
+  # we also need to confirm, for all sheets, that the base columns are present
+  required <- c("t", "study_id")
+  
+  if (options[['dataFormat']] == "arm") {
+    if (options[['outcomeType']] == "binary") {
+      required <- c(required, "n", "r")
+    }
+    if (options[['outcomeType']] == "continuous") {
+      required <- c(required, "n", "m", "sd")
+    }
+    if (options[['outcomeType']] == "tte") {
+      required <- c(required, "d", "t", "time")
+    }
+  }
+  required[!required %in% names(sheet)]
+}
+
+#' Determine whether the given set of options is complete
+#' @param optionSet list, the list of set options, keyed by sheet name
+#' @returns list, a list of missing fields, keyed by sheet name
+getMissingOptions <- function(optionSet) {
+  missing <- list()
+  options <-
+    c("dataFormat",
+      "methodTau",
+      "method",
+      "model",
+      "outcomeType",
+      "sm",
+      "smallValues")
+  
+  for (sheetName in names(optionSet)) {
+    for (i in 1:length(options)) {
+      if (options[i] == 'methodTau' &&
+          !is.null(optionSet[[sheetName]][['model']]) &&
+          optionSet[[sheetName]][['model']] == 'common') {
+        
+      } else if (is.null(optionSet[[sheetName]][[options[i]]])) {
+        if (is.null(missing[[sheetName]])) {
+          missing[[sheetName]] <- list()
+        }
+        missing[[sheetName]][[options[i]]] <- TRUE
+      }
+    }
+  }
+  missing
+}
+
+#' @param id string, the id (not selector) of the radio group
+#' @param values vector, the choices that are NOT allowed
+#' @param selected string | NULL, the current selection value
+#' @returns void
+disableOptions <- function(id, values, selected) {
+  # if selected value is in the disallowed values, set to null
+  if (!is.null(selected) && selected %in% values) {
+    updateRadioButtons(inputId = id, selected = character(0))
+  }
+  sapply(values, disableOption, id)
+}
+
+#' disable an option within a radio group
+#' @param value string, the value of the option
+#' @param id string, the id (not selector) of the option group
+#' @returns void
+disableOption <- function(value, id) {
+  selector <- getRadioInputSelector(id, value)
+  shinyjs::disable(selector = selector)
+}
+
+# return the selector for the radio option w/ given value and parent id
+#' @param id string, the id (not selector) of the radio group
+#' @param value string, the value of the option
+#' @returns string
+getRadioInputSelector <- function(id, value) {
+  paste0("#", id, " [type=radio][value=", value, "]")
+}
+
+#' @param valueList the list of variables, probably reactiveValues
+#' @param prefixVec vector of prefixes, probably list of sheets
+#' @returns list
+groupValues <- function(valueList, prefixVec) {
+  ret <- list()
+  for (prefix in prefixVec) {
+    ret[[prefix]] = list()
+  }
+  
+  for (key in names(valueList)) {
+    # first, does the key contain the {prefixVec}_option_ string? if so, extract and save value
+    prefix <- str_remove(key, "_.+")
+    # first, check if key is in prefix list by stripping everything else
+    if (prefix %in% prefixVec &&
+        str_detect(key, paste0(prefix, "_option_"))) {
+      optionName <- str_remove(key, paste0(prefix, "_option_"))
+      ret[[prefix]][[optionName]] <- valueList[[key]]
+    }
+  }
+  ret
+}
+
+#' @param pth path to excel sheet
+#' @returns list of dataframes
+extractSheets <- function(pth) {
+  sheets <- excel_sheets(pth)
+  output <- list()
+  for (i in 1:length(sheets)) {
+    df <- read_excel(path = pth, sheet = sheets[i])
+    output[[sheets[i]]] <- df
+  }
+  output
+}
+
+submitAnalysis <- function(options, sheets, output) {
+  results <- list()
+  
+  for (sheetName in names(sheets)) {
+    df <- sheets[[sheetName]]
+    opts <- options[[sheetName]]
+    if (opts$dataFormat == "arm") {
+      transformed <- armToContrast(df, opts)
+    } else {
+      transformed <- df
+    }
+    
+    netmetaArgs <-
+      list(
+        data = transformed,
+        sm = opts$sm,
+        common = opts$model == "common",
+        random = opts$model != "common",
+        TE = transformed[['TE']],
+        seTE = transformed[['seTE']],
+        studlab = transformed[['studlab']],
+        treat1 = transformed[['treat1']],
+        treat2 = transformed[['treat2']]
+      )
+    
+    if (opts$model == "common") {
+      netmetaArgs$method.tau <- opts$methodTau
+    }
+    
+    netmetaRes <- do.call(netmeta, netmetaArgs)
+    
+    
+    cons <-
+      netconnection(netmetaRes[['treat1']], netmetaRes[['treat2']], netmetaRes[['studlab']], data = netmetaRes)
+    if (cons$n.subnets > 1) {
+      stop("User should update their data!")
+    }
+    
+    ranked <- netrank(
+      x = netmetaRes,
+      method = opts$method,
+      small.values = opts$smallValues,
+      common = opts$model == "common",
+      random = opts$model != "common"
+    )
+    
+    if (opts$model == "common") {
+      ranking = ranked$ranking.common
+    } else {
+      ranking = ranked$ranking.random
+    }
+    
+    results[[sheetName]] <- rankToDf(ranking, sheetName)
+    
+  }
+  
+  allResults <-
+    Reduce(function(a, b)
+      merge(a, b, by = "Treatment", all = TRUE),  results)
+  
+  formatted <- rhp.prepData(allResults)
+  
+  output$heatmap <- renderPlot({
+    rhp.rankheatplotCircos(formatted)
+  })
+  
+  output$dataTable <- renderTable(formatted, rownames = T)
+  
+  
+}
+
+#' @param ranking named vector, typically retrieved from netrank() result as
+#' result$ranking.common or result$ranking.random
+#' @param treament string
+rankToDf <- function(ranking, outcome) {
+  df <- data.frame(names(ranking), as.numeric(ranking))
+  names(df) <- c("Treatment", outcome)
+  df
+}
+
+#' transform arm data to contrast data if needed
+#' @param option list, a list of arguments selected in the ui
+#' @param sheet df, a dataframe derived from a sheet of the uploaded excel book
+armToContrast <- function(sheet, options) {
+  args <- list(studlab = sheet[['study_id']], treat = sheet[['t']])
+  if (options[['outcomeType']] == "binary") {
+    args$n <- sheet[['n']]
+    args$event <- sheet[['r']]
+    args$data <- sheet
+    args$sm <- options$ms
+  }
+  if (options[['outcomeType']] == "continuous") {
+    args$n <- sheet[['n']]
+    args$m <- sheet[['m']]
+    args$sd <- sheet[['sd']]
+  }
+  if (options[['outcomeType']] == "tte") {
+    args$d <- sheet[['d']]
+    args$t <- sheet[['t']]
+    args$time <- sheet[['time']]
+  }
+  
+  do.call(pairwise, args = args, quote = F)
   
 }
 
