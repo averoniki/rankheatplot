@@ -11,7 +11,7 @@ RUN install2.r --error \
     RColorBrewer \
     readxl \
     shiny \
-    shinycssloaders \
+    shinybusy \
     shinyjs \
     stringr \
     rmarkdown \

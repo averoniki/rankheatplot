@@ -1,49 +1,55 @@
 library(shiny)
 library(rmarkdown)
-library(shinycssloaders)
+library(shinybusy)
+library(shinyjs)
 library(stringr)
 source("/home/rstudio/src/scripts/rankHeatCircos.R")
 
 ui <-
   shinyUI(navbarPage(
-    "RankHeat Plot",
-    useShinyjs(),
-    tabPanel(title = "Run",
-             fluidRow(
-               column(4,
-                      fluidRow(column(
-                        12,
-                        fileInput(
-                          accept = c(
-                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                            "application/vnd.ms-excel"
-                          ),
-                          inputId = "userData",
-                          label = h3("Upload an .xlsx file")
-                        )
-                      )), fluidRow(column(
-                        12, actionButton("submit", "Submit")
-                      )), fluidRow(column(
-                        12, div(uiOutput("sheetValidationHeading")
-                                ,
-                                tags$ul(uiOutput(
-                                  "sheetValidationMsg"
-                                )))
-                      ))),
-               column(8,
-                      fluidRow(column(
-                        12,
-                        shiny::tabsetPanel(id = "dynamicTabs")
-                      )))
-             ),
-             fluidRow(
-               column(6,
-                      plotOutput(
-                        "heatmap", width = "100%", height = "700px"
-                      )),
-               column(6,
-                      tableOutput("dataTable"))
-             )),
+    tags$head(tags$link(
+      rel = "stylesheet", type = "text/css", href = "app.css"
+    )),
+    title = "RankHeat Plot",
+    tabPanel(
+      title = "Run",
+      useShinyjs(),
+      fluidRow(
+        column(4,
+               fluidRow(column(
+                 12,
+                 fileInput(
+                   accept = c(
+                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                     "application/vnd.ms-excel"
+                   ),
+                   inputId = "userData",
+                   label = h3("Upload an .xlsx file")
+                 )
+               )), fluidRow(column(
+                 12, actionButton("submit", "Submit")
+               )), fluidRow(column(
+                 12, div(
+                   class = "mt-5 mb-5 alert-danger",
+                   uiOutput("sheetValidationHeading")
+                   ,
+                   tags$ul(uiOutput("sheetValidationMsg"))
+                 )
+               ))),
+        column(8,
+               fluidRow(column(
+                 12,
+                 shiny::tabsetPanel(id = "dynamicTabs")
+               )))
+      ),
+      fluidRow(tags$hr()),
+      fluidRow(column(
+        6,
+        plotOutput("heatmap", width = "100%", height = "700px")
+      ),
+      column(6,
+             tableOutput("dataTable")))
+    ),
     tabPanel(title = "About",
              fluidRow(htmlOutput("about"))),
   ))
@@ -57,8 +63,10 @@ server <- function(input, output) {
   
   sheetList <- reactive({
     # reset ui on upload
-    output$sheetValidationHeading <- renderText("")
-    output$sheetValidationMsg <- renderUI(list())
+    output$sheetValidationHeading <- NULL
+    output$sheetValidationMsg <- NULL
+    output$dataTable <- NULL
+    output$heatmap <- NULL
     if (!is.null(userData())) {
       extractSheets(userData()$datapath)
     }
@@ -178,7 +186,6 @@ server <- function(input, output) {
   observeEvent(input$submit, {
     options <- groupValues(input, names(sheetList()))
     invalid <- validateSheets(options, sheetList())
-    # TODO: this needs to become rendered as text
     if (length(invalid)) {
       msg <- list()
       for (sheetName in names(invalid)) {
@@ -190,12 +197,18 @@ server <- function(input, output) {
         ))
       }
       output$sheetValidationHeading <-
-        renderText("The following sheets are missing required columns:")
+        renderText("The following sheets have errors:")
       output$sheetValidationMsg <- renderUI(msg)
-    } else {
+    }  else {
       output$sheetValidationHeading <- NULL
       output$sheetValidationMsg <- renderUI(NULL)
-      submitAnalysis(options, sheetList(), output)
+      
+      tryCatch({
+        show_modal_spinner()
+        submitAnalysis(options, sheetList(), output)
+      }, finally = {
+        remove_modal_spinner()
+      })
     }
   })
   
@@ -258,13 +271,15 @@ visibilityUpdaters <- list(
 #' validate that sheets have the appropriate columns for the options selected
 #' @param optionSet list, list of selected options, keyed by sheet name
 #' @param sheets list, list of dataframes, keyed by sheet name
+#' @returns list, list of errors, possibly empty. Each sheet that has an error
+#' will have an entry in the list, keyed by sheet name, with the string message as content.
 validateSheets <- function(optionSet, sheets) {
   results <- list()
   for (sheetName in names(sheets)) {
-    missing <-
+    errors <-
       validateSheet(optionSet[[sheetName]], sheets[[sheetName]])
-    if (length(missing)) {
-      results[[sheetName]] <- missing
+    if (length(errors)) {
+      results[[sheetName]] <- errors
     }
   }
   results
@@ -278,20 +293,86 @@ validateSheet <- function(options, sheet) {
   # if dataType is arm, then we have to be sure they have the right columns for
   # the outcomeType they selected, as this will be passed on to pairwise
   # we also need to confirm, for all sheets, that the base columns are present
-  required <- c("t", "study_id")
+  
+  results <- list()
+  required <- list("t" = list(), "study_id" = list())
   
   if (options[['dataFormat']] == "arm") {
     if (options[['outcomeType']] == "binary") {
-      required <- c(required, "n", "r")
+      tm <- list(n = list(type = "integer", gt = "0"),
+                 r = list(type = "integer", gt = "e0"))
+      results <- checkTypeAndExistence(sheet, c(required, tm))
     }
     if (options[['outcomeType']] == "continuous") {
-      required <- c(required, "n", "m", "sd")
+      tm <- list(
+        n = list(type = "integer", gt = "0"),
+        sd = list(type = "numeric", gt = "0"),
+        m = list(type = "numeric")
+      )
+      results <- checkTypeAndExistence(sheet, c(required, tm))
     }
     if (options[['outcomeType']] == "tte") {
-      required <- c(required, "d", "t", "time")
+      tm <- list(
+        d = list(type = "integer", gt = "e0"),
+        time = list(type = "numeric", gt = "0")
+      )
+      results <- checkTypeAndExistence(sheet, c(required, tm))
+    }
+  } else {
+    tm <- list(TE = list(type = "numeric"),
+               SE = list(type = "numeric", gt = "0"))
+    results <- checkTypeAndExistence(sheet, c(required, tm))
+  }
+  
+  results
+}
+
+#' @param cols data.frame, a subset of relevant columns
+#' @param typeMap list, keyed by (expected) colname in df, with optional keys 'type' and 'gt'
+#' @returns list, keyed by sheet with error message or empty if no errors
+checkTypeAndExistence <- function(df, typeMap) {
+  errors <- list()
+  for (fieldName in names(typeMap)) {
+    # first make sure column exists
+    if (fieldName %in% names(df)) {
+      # then check for NAs
+      if (length(df[[fieldName]][!is.na(df[[fieldName]])]) < length(df[[fieldName]])) {
+        errors[[fieldName]] <- paste0(fieldName, ' has empty values')
+      }
+      # then check the type
+      else {
+        if (!is.null(typeMap[[fieldName]]$type)) {
+          type <- typeMap[[fieldName]]$type
+          if (type == "integer") {
+            if (!all(compareNA(df[[fieldName]], as.integer(df[[fieldName]])))) {
+              errors[[fieldName]] <- paste0(fieldName, " must be an integer")
+            }
+          } else if (type == "numeric") {
+            if (!all(compareNA(df[[fieldName]], as.numeric(df[[fieldName]])))) {
+              errors[[fieldName]] <- paste0(fieldName, " must be a number")
+            }
+          }
+        }
+        if (!length(errors)) {
+          if (!is.null(typeMap[[fieldName]]$gt)) {
+            # then check values
+            if (typeMap[[fieldName]]$gt == "0" &&
+                !all(df[[fieldName]] > 0)) {
+              errors[[fieldName]] <- paste0(fieldName, " must be greater than 0")
+            }
+            if (typeMap[[fieldName]]$gt == "e0" &&
+                !all(df[[fieldName]] >= 0)) {
+              errors[[fieldName]] <-
+                paste0(fieldName, " must be greater than or equal to 0")
+            }
+          }
+        }
+      }
+    } else {
+      errors[[fieldName]] <- paste0(fieldName, " is required")
     }
   }
-  required[!required %in% names(sheet)]
+  errors
 }
 
 #' Determine whether the given set of options is complete
@@ -419,10 +500,10 @@ submitAnalysis <- function(options, sheets, output) {
     
     netmetaRes <- do.call(netmeta, netmetaArgs)
     
-    
     cons <-
       netconnection(netmetaRes[['treat1']], netmetaRes[['treat2']], netmetaRes[['studlab']], data = netmetaRes)
     if (cons$n.subnets > 1) {
+      # TODO: this needs proper handling
       stop("User should update their data!")
     }
     
@@ -492,6 +573,15 @@ armToContrast <- function(sheet, options) {
   
   do.call(pairwise, args = args, quote = F)
   
+}
+
+# This function returns TRUE wherever elements are the same, including NA's,
+# and FALSE everywhere else.
+# http://www.cookbook-r.com/Manipulating_data/Comparing_vectors_or_factors_with_NA/
+compareNA <- function(v1, v2) {
+  same <- (v1 == v2) | (is.na(v1) & is.na(v2))
+  same[is.na(same)] <- FALSE
+  return(same)
 }
 
 # Run the application
