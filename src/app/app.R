@@ -80,88 +80,71 @@ server <- function(input, output) {
     shinyjs::runjs("$('#dynamicTabs li').remove()")
     for (name in names(sheetList())) {
       shiny::prependTab(inputId = "dynamicTabs",
-                        shiny::tabPanel(title = name,
-                                        fluidRow(
-                                          column(
-                                            4,
-                                            div(
-                                              id = paste0(name, "_option_dataFormat"),
-                                              radioButtons(
-                                                inputId = paste0(name, "_option_dataFormat"),
-                                                label = "Select Data Format",
-                                                choiceNames = c("Arm Level", "Contrast Level"),
-                                                choiceValues = c("arm", "contrast"),
-                                                selected = character(0)
-                                              )
-                                            ),
-                                            div(
-                                              id = paste0(name, "_option_outcomeType"),
-                                              radioButtons(
-                                                inputId = paste0(name, "_option_outcomeType"),
-                                                label = "Select Outcome Type",
-                                                choiceNames = c("Binary", "Continuous", "Time to Event", "Survival"),
-                                                choiceValues = c("binary", "continuous", "tte", "survival"),
-                                                selected = character(0)
-                                              )
-                                            )
-                                          ),
-                                          column(
-                                            4,
-                                            div(
-                                              id = paste0(name, "_option_sm"),
-                                              radioButtons(
-                                                inputId = paste0(name, "_option_sm"),
-                                                label = "Select Effect Size",
-                                                choiceNames = c("HR", "IRR", "MD", "OR", "RD", "ROM", "RR", "SMD"),
-                                                choiceValues = c("hr", "irr", "md", "or", "rd", "rom", "rr", "smd"),
-                                                selected = character(0)
-                                              )
-                                            ),
-                                            div(
-                                              id = paste0(name, "_option_smallValues"),
-                                              radioButtons(
-                                                inputId = paste0(name, "_option_smallValues"),
-                                                label = "Select Small Values",
-                                                choiceNames = c("Good", "Bad"),
-                                                choiceValues = c("good", "bad"),
-                                                selected = character(0)
-                                              )
-                                            )
-                                          ),
-                                          column(
-                                            4,
-                                            div(
-                                              id = paste0(name, "_option_model"),
-                                              radioButtons(
-                                                inputId = paste0(name, "_option_model"),
-                                                label = "Select Model",
-                                                choiceNames = c("Common effect", "Random effects"),
-                                                choiceValues = c("common", "random"),
-                                                selected = character(0)
-                                              )
-                                            ),
-                                            div(
-                                              id = paste0(name, "_option_methodTau"),
-                                              radioButtons(
-                                                inputId = paste0(name, "_option_methodTau"),
-                                                label = "Select Method.tau",
-                                                choiceNames = c("REML", "ML", "DL"),
-                                                choiceValues = c("reml", "ml", "dl"),
-                                                selected = character(0)
-                                              )
-                                            ),
-                                            div(
-                                              id = paste0(name, "_option_method"),
-                                              radioButtons(
-                                                inputId = paste0(name, "_option_method"),
-                                                label = "Select Rank Statistic",
-                                                choiceNames = c("SUCRA", "P-Score"),
-                                                choiceValues = c("SUCRA", "P-score"),
-                                                selected = character(0)
-                                              )
-                                            )
-                                          )
-                                        )))
+                        shiny::tabPanel(
+                          title = name,
+                          class = "mt-5",
+                          fluidRow(
+                            column(
+                              4,
+                              radioButtons(
+                                inputId = paste0(name, "_option_dataFormat"),
+                                label = "Select Data Format",
+                                choiceNames = c("Arm Level", "Contrast Level"),
+                                choiceValues = c("arm", "contrast"),
+                                selected = character(0)
+                              ),
+                              radioButtons(
+                                inputId = paste0(name, "_option_outcomeType"),
+                                label = "Select Outcome Type",
+                                choiceNames = c("Binary", "Continuous", "Time to Event", "Survival"),
+                                choiceValues = c("binary", "continuous", "tte", "survival"),
+                                selected = character(0)
+                              ),
+                            ),
+                            column(
+                              4,
+                              radioButtons(
+                                inputId = paste0(name, "_option_sm"),
+                                label = "Select Effect Size",
+                                choiceNames = c("OR", "RR", "RD", "MD", "SMD", "ROM", "IRR", "HR"),
+                                choiceValues = c("or", "rr", "rd", "md", "smd", "rom", "irr", "hr"),
+                                selected = character(0)
+                              ),
+                              radioButtons(
+                                inputId = paste0(name, "_option_smallValues"),
+                                label = "Select Small Values",
+                                choiceNames = c("Good", "Bad"),
+                                choiceValues = c("good", "bad"),
+                                selected = character(0)
+                              ),
+                            ),
+                            column(
+                              4,
+                              radioButtons(
+                                inputId = paste0(name, "_option_model"),
+                                label = "Select Model",
+                                choiceNames = c("Common effect", "Random effects"),
+                                choiceValues = c("common", "random"),
+                                selected = character(0)
+                              ),
+                              radioButtons(
+                                inputId = paste0(name, "_option_methodTau"),
+                                label = "Select Method.tau",
+                                choiceNames = c("REML", "ML", "DL"),
+                                choiceValues = c("reml", "ml", "dl"),
+                                selected = character(0)
+                              ),
+                              radioButtons(
+                                inputId = paste0(name, "_option_method"),
+                                label = "Select Rank Statistic",
+                                choiceNames = c("SUCRA", "P-Score"),
+                                choiceValues = c("SUCRA", "P-score"),
+                                selected = character(0)
+                                ,
+                              )
+                            )
+                          )
+                        ))
     }
     updateTabsetPanel(inputId = "dynamicTabs", selected = rev(names(sheetList()))[1])
   })
