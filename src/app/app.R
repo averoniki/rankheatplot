@@ -3,6 +3,7 @@ library(rmarkdown)
 library(shinybusy)
 library(shinyjs)
 library(stringr)
+library(readxl)
 source("/home/rstudio/src/scripts/rankHeatCircos.R")
 
 ui <-
@@ -11,9 +12,9 @@ ui <-
       rel = "stylesheet", type = "text/css", href = "app.css"
     )),
     title = "RankHeat Plot",
+    useShinyjs(),
     tabPanel(
       title = "Run",
-      useShinyjs(),
       fluidRow(
         column(4,
                fluidRow(column(
@@ -295,9 +296,11 @@ validateSheet <- function(options, sheet) {
   # we also need to confirm, for all sheets, that the base columns are present
   
   results <- list()
-  required <- list("t" = list(), "study_id" = list())
+  required <- list("study_id" = list())
   
   if (options[['dataFormat']] == "arm") {
+    required <- c(required, list("t" = list()))
+    
     if (options[['outcomeType']] == "binary") {
       tm <- list(n = list(type = "integer", gt = "0"),
                  r = list(type = "integer", gt = "e0"))
@@ -319,8 +322,12 @@ validateSheet <- function(options, sheet) {
       results <- checkTypeAndExistence(sheet, c(required, tm))
     }
   } else {
-    tm <- list(TE = list(type = "numeric"),
-               SE = list(type = "numeric", gt = "0"))
+    tm <- list(
+      TE = list(type = "numeric"),
+      seTE = list(type = "numeric", gt = "0"),
+      treat1 = list(),
+      treat2 = list()
+    )
     results <- checkTypeAndExistence(sheet, c(required, tm))
   }
   
@@ -446,7 +453,7 @@ groupValues <- function(valueList, prefixVec) {
   
   for (key in names(valueList)) {
     # first, does the key contain the {prefixVec}_option_ string? if so, extract and save value
-    prefix <- str_remove(key, "_.+")
+    prefix <- str_remove(key, "_option.+")
     # first, check if key is in prefix list by stripping everything else
     if (prefix %in% prefixVec &&
         str_detect(key, paste0(prefix, "_option_"))) {
@@ -553,7 +560,9 @@ rankToDf <- function(ranking, outcome) {
 #' @param option list, a list of arguments selected in the ui
 #' @param sheet df, a dataframe derived from a sheet of the uploaded excel book
 armToContrast <- function(sheet, options) {
+  # set globally require args
   args <- list(studlab = sheet[['study_id']], treat = sheet[['t']])
+  
   if (options[['outcomeType']] == "binary") {
     args$n <- sheet[['n']]
     args$event <- sheet[['r']]
