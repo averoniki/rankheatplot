@@ -4,7 +4,7 @@ library(RColorBrewer)
 library(grid)
 
 # ensure that it contains only numbers and/or NA
-isAllNumeric <- function(vec){
+isAllNumeric <- function(vec) {
   length(vec[is.na(as.numeric(vec))]) == length(vec[is.na(vec)])
 }
 
@@ -22,7 +22,7 @@ rhp.rankheatplotCircos <-
   function(chartData, format = "percentage") {
     chartData = as.data.frame(chartData) # will collapse to vector if only one row
     rns <- rownames(chartData)
-    chartData[nrow(chartData) + 1,] <- colnames(chartData)
+    chartData[nrow(chartData) + 1, ] <- colnames(chartData)
     rownames(chartData) <- c(rns, "Outcome")
     pal = brewer.pal(11, "RdYlGn") # will return the hex values
     breaks <-
@@ -51,6 +51,7 @@ rhp.rankheatplotCircos <-
     )
     
     circos.heatmap(
+      cell.border = "grey",
       chartData,
       # split each row into a separate sector
       split = rownames(chartData),
@@ -64,6 +65,7 @@ rhp.rankheatplotCircos <-
     
     circos.track(
       track.index = get.current.track.index(),
+      bg.border = NA,
       # this will create graphical elements immediately after creation of cell
       panel.fun = function(x, y) {
         n = ncol(chartData)
@@ -73,7 +75,7 @@ rhp.rankheatplotCircos <-
             1:n - 0.5,
             # get data by rowname
             formatData(as.vector(t(
-              rev(chartData[get.cell.meta.data("sector.index"),])
+              rev(chartData[get.cell.meta.data("sector.index"), ])
             ))),
             cex = 0.75,
             adj = c(.5, .5),
@@ -81,11 +83,11 @@ rhp.rankheatplotCircos <-
             niceFacing = T
           )
         } else {
-          # 'bending' requires a loop rather than vector args
-          lbls = rev(names(chartData[get.cell.meta.data("sector.index"),]))
+          # facing='bending' requires a loop rather than vector args
+          lbls = rev(names(chartData[get.cell.meta.data("sector.index"), ]))
           for (i in 1:m) {
             circos.text(
-              CELL_META$cell.xlim[1],
+              CELL_META$cell.xlim[1] + convert_x(1, "mm"),
               i - .65,
               lbls[i],
               cex = 0.75,
@@ -96,7 +98,6 @@ rhp.rankheatplotCircos <-
           }
         }
       },
-      bg.border = NA
     )
     
     lgd = ComplexHeatmap::Legend(col_fun = colFun, direction = "horizontal")
@@ -111,12 +112,12 @@ rhp.rankheatplotCircos <-
 
 rhp.prepData <- function(df, format = "percentage") {
   # drop rows that don't have a label
-  df <- df[!is.na(df[, 1]), ]
+  df <- df[!is.na(df[, 1]),]
   
   # set first column as row names
   rns <- df[, 1]
   # drop first column
-  df <- df[, -c(1)]
+  df <- df[,-c(1)]
   if (format == "percentage") {
     df <- as.data.frame(sapply(df, function(x)
       x * 100))
