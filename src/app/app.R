@@ -16,27 +16,60 @@ ui <-
     tabPanel(
       title = "Run",
       fluidRow(
-        column(4,
-               fluidRow(column(
-                 12,
-                 fileInput(
-                   accept = c(
-                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                     "application/vnd.ms-excel"
-                   ),
-                   inputId = "userData",
-                   label = h3("Upload an .xlsx file")
-                 )
-               )), fluidRow(column(
-                 12, actionButton("submit", "Submit")
-               )), fluidRow(column(
-                 12, div(
-                   class = "mt-5 mb-5 alert-danger",
-                   uiOutput("sheetValidationHeading")
-                   ,
-                   tags$ul(uiOutput("sheetValidationMsg"))
-                 )
-               ))),
+        column(
+          4,
+          fluidRow(column(
+            12,
+            fileInput(
+              accept = c(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel"
+              ),
+              inputId = "userData",
+              label = h3("Upload an .xlsx file")
+            )
+          )),
+          fluidRow(column(12, actionButton("submit", "Submit"))),
+          fluidRow(column(
+            12, div(
+              class = "mt-5 mb-5 alert-danger",
+              uiOutput("sheetValidationHeading")
+              ,
+              tags$ul(uiOutput("sheetValidationMsg"))
+            )
+          )),
+          fluidRow(column(
+            12,
+            class = "mt-5 mb-5 display-controls",
+            div(
+              sliderInput(
+                "cexValue",
+                "Value Label Size:",
+                min = .1,
+                max = 2,
+                value = .5
+              ),
+            ),
+            div(
+              sliderInput(
+                "cexLabel",
+                "Outcome Label Size:",
+                min = .1,
+                max = 2,
+                value = .65
+              ),
+            ),
+            div(
+              sliderInput(
+                "cexSector",
+                "Treatment Label Size:",
+                min = .1,
+                max = 2,
+                value = 1
+              ),
+            )
+          ))
+        ),
         column(8,
                fluidRow(column(
                  12,
@@ -68,13 +101,13 @@ server <- function(input, output) {
     output$sheetValidationMsg <- NULL
     output$dataTable <- NULL
     output$heatmap <- NULL
+    hideDisplayControls()
     if (!is.null(userData())) {
       extractSheets(userData()$datapath)
     }
   })
   
   # BUILDING THE FORM
-  
   #' This will create the UI with an identical tab for each uploaded sheet
   observe({
     # remove tab headings
@@ -169,10 +202,12 @@ server <- function(input, output) {
     }
   })
   
-  # on submit, we'll make sure that the sheets have the right columns
-  observeEvent(input$submit, {
-    options <- groupValues(input, names(sheetList()))
-    invalid <- validateSheets(options, sheetList())
+  # bind formatted data object to submit button
+  formattedValues <- bindEvent(reactive({
+    options <-
+      groupValues(input, names(sheetList()))
+    invalid <-
+      validateSheets(options, sheetList())
     if (length(invalid)) {
       msg <- list()
       for (sheetName in names(invalid)) {
@@ -185,20 +220,52 @@ server <- function(input, output) {
       }
       output$sheetValidationHeading <-
         renderText("The following sheets have errors:")
-      output$sheetValidationMsg <- renderUI(msg)
+      output$sheetValidationMsg <-
+        renderUI(msg)
+      NULL
     }  else {
       output$sheetValidationHeading <- NULL
-      output$sheetValidationMsg <- renderUI(NULL)
+      output$sheetValidationMsg <-
+        renderUI(NULL)
       
       tryCatch({
         show_modal_spinner()
-        submitAnalysis(options, sheetList(), output)
-      }, finally = {
+        formatted <-
+          getRanks(options, sheetList(), input)
         remove_modal_spinner()
+        formatted
+      }, error = {
+        remove_modal_spinner()
+        NULL
       })
     }
-  })
+  }), input$submit)
   
+  observe({
+    if (!is.null(formattedValues())) {
+      output$heatmap <- renderPlot({
+        rhp.rankheatplotCircos(
+          formattedValues(),
+          cexLabel = input$cexLabel,
+          cexValue = input$cexValue,
+          cexSector = input$cexSector
+        )
+      })
+      output$dataTable <-
+        renderTable(formattedValues(), rownames = T)
+      showDisplayControls()
+    } else {
+      hideDisplayControls()
+    }
+  })
+}
+
+hideDisplayControls <- function() {
+  shinyjs::hide(selector = ".display-controls")
+}
+
+showDisplayControls <- function() {
+  shinyjs::show(selector = ".display-controls")
 }
 
 #' list of functions, one per possible input
@@ -462,7 +529,11 @@ extractSheets <- function(pth) {
   output
 }
 
-submitAnalysis <- function(options, sheets, output) {
+#' format data to be passed to plotting function
+#' @param options list, list keyed by sheet of arguments to pass to functions
+#' @param input reactiveValues, the list of inputs, which will contain formatting values
+#' @returns dataframe, dataframe that can be passed to rank heat plot function
+getRanks <- function(options, sheets, input) {
   results <- list()
   
   for (sheetName in names(sheets)) {
@@ -522,15 +593,7 @@ submitAnalysis <- function(options, sheets, output) {
     Reduce(function(a, b)
       merge(a, b, by = "Treatment", all = TRUE),  results)
   
-  formatted <- rhp.prepData(allResults)
-  
-  output$heatmap <- renderPlot({
-    rhp.rankheatplotCircos(formatted)
-  })
-  
-  output$dataTable <- renderTable(formatted, rownames = T)
-  
-  
+  rhp.prepData(allResults)
 }
 
 #' @param ranking named vector, typically retrieved from netrank() result as

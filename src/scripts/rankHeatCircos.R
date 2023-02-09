@@ -19,7 +19,11 @@ formatData <- function(vec) {
 }
 
 rhp.rankheatplotCircos <-
-  function(chartData, format = "percentage") {
+  function(chartData,
+           format = "percentage",
+           cexLabel = .65,
+           cexValue = .75,
+           cexSector = 1) {
     chartData = as.data.frame(chartData) # will collapse to vector if only one row
     rns <- rownames(chartData)
     chartData[nrow(chartData) + 1, ] <- colnames(chartData)
@@ -47,7 +51,8 @@ rhp.rankheatplotCircos <-
     circos.par(
       start.degree = startDegree,
       gap.degree = gapDegree,
-      canvas.ylim = c(-1.3, 1)
+      canvas.ylim = c(-1.3, 1),
+      points.overflow.warning = FALSE
     )
     
     circos.heatmap(
@@ -58,7 +63,6 @@ rhp.rankheatplotCircos <-
       col = w_cf,
       cluster = F,
       na.col = "white",
-      show.sector.labels = T,
       track.height = .65,
     )
     
@@ -77,7 +81,7 @@ rhp.rankheatplotCircos <-
             formatData(as.vector(t(
               rev(chartData[get.cell.meta.data("sector.index"), ])
             ))),
-            cex = 0.75,
+            cex = cexValue,
             adj = c(.5, .5),
             facing = "inside",
             niceFacing = T
@@ -85,12 +89,12 @@ rhp.rankheatplotCircos <-
         } else {
           # facing='bending' requires a loop rather than vector args
           lbls = rev(names(chartData[get.cell.meta.data("sector.index"), ]))
-          for (i in 1:m) {
+          for (i in 1:n) {
             circos.text(
               CELL_META$cell.xlim[2] / 2 ,
               i - .5,
               lbls[i],
-              cex = 0.75,
+              cex = cexLabel,
               adj = c(.5, .5),
               facing = "bending",
               niceFacing = T
@@ -99,6 +103,21 @@ rhp.rankheatplotCircos <-
         }
       },
     )
+    
+    # we'll roll our own sector labels so we have control over cex
+    for (nm in rownames(chartData)) {
+      set.current.cell(sector.index = nm, track.index = 1)
+      
+      circos.text(
+        CELL_META$xcenter,
+        CELL_META$ylim[2] + 0.2,
+        nm,
+        facing = "bending.inside",
+        adj = c(0.5, 0),
+        cex=cexSector
+      )
+      
+    }
     
     lgd = ComplexHeatmap::Legend(col_fun = colFun, direction = "horizontal")
     ComplexHeatmap::draw(
