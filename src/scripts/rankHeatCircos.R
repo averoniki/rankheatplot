@@ -71,7 +71,7 @@ rhp.rankheatplotCircos <-
         n = ncol(chartData)
         if (get.cell.meta.data("sector.index") != "Outcome") {
           circos.text(
-            rep(CELL_META$cell.xlim[2] / 2, n) + convert_x(1, "mm"),
+            rep(CELL_META$cell.xlim[2] / 2, n),
             1:n - 0.5,
             # get data by rowname
             formatData(as.vector(t(
@@ -87,11 +87,11 @@ rhp.rankheatplotCircos <-
           lbls = rev(names(chartData[get.cell.meta.data("sector.index"), ]))
           for (i in 1:m) {
             circos.text(
-              CELL_META$cell.xlim[1] + convert_x(1, "mm"),
-              i - .65,
+              CELL_META$cell.xlim[2] / 2 ,
+              i - .5,
               lbls[i],
               cex = 0.75,
-              adj = c(0, .5),
+              adj = c(.5, .5),
               facing = "bending",
               niceFacing = T
             )

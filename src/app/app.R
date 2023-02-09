@@ -77,7 +77,10 @@ server <- function(input, output) {
   
   #' This will create the UI with an identical tab for each uploaded sheet
   observe({
+    # remove tab headings
     shinyjs::runjs("$('#dynamicTabs li').remove()")
+    # remove tab content
+    shinyjs::runjs("$('.tabbable .tab-content .tab-pane').remove()")
     for (name in names(sheetList())) {
       shiny::prependTab(inputId = "dynamicTabs",
                         shiny::tabPanel(
