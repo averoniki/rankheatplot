@@ -47,7 +47,7 @@ ui <-
                 "Value Label Size:",
                 min = .1,
                 max = 2,
-                value = .5
+                value = .75
               ),
             ),
             div(
@@ -209,19 +209,7 @@ server <- function(input, output) {
     invalid <-
       validateSheets(options, sheetList())
     if (length(invalid)) {
-      msg <- list()
-      for (sheetName in names(invalid)) {
-        msg[[sheetName]] <- tags$li(paste0(
-          str_to_upper(sheetName),
-          ": ",
-          paste0(invalid[[sheetName]], collapse = ", "),
-          "\n"
-        ))
-      }
-      output$sheetValidationHeading <-
-        renderText("The following sheets have errors:")
-      output$sheetValidationMsg <-
-        renderUI(msg)
+      createErrorDisplayList(errorList = invalid, output = output)
       NULL
     }  else {
       output$sheetValidationHeading <- NULL
@@ -231,9 +219,15 @@ server <- function(input, output) {
       tryCatch({
         show_modal_spinner()
         formatted <-
-          getRanks(options, sheetList(), input)
+          getFormattedData(options, sheetList(), input)
         remove_modal_spinner()
-        formatted
+        # check if we got an error list back
+        if (!is.data.frame(formatted)) {
+          createErrorDisplayList(formatted, ouput)
+          NULL
+        } else {
+          formatted
+        }
       }, error = {
         remove_modal_spinner()
         NULL
@@ -258,6 +252,26 @@ server <- function(input, output) {
       hideDisplayControls()
     }
   })
+}
+
+#' create HTML list of errors and update display
+#' @param errorList list, a list of error messages, typically keyed by sheet,
+#' errors can be a vector of message
+#' @param output reactiveValues, the output to update
+createErrorDisplayList <- function(errorList, output) {
+  msg <- list()
+  for (sheetName in names(errorList)) {
+    msg[[sheetName]] <- tags$li(paste0(
+      str_to_upper(sheetName),
+      ": ",
+      paste0(errorList[[sheetName]], collapse = ", "),
+      "\n"
+    ))
+  }
+  output$sheetValidationHeading <-
+    renderText("The following sheets have errors:")
+  output$sheetValidationMsg <-
+    renderUI(msg)
 }
 
 hideDisplayControls <- function() {
@@ -339,15 +353,12 @@ validateSheets <- function(optionSet, sheets) {
   results
 }
 
-#' Confirm that the sheet has the appropriate columns for the options selected
+#' Confirm that the sheet has the appropriate columns, types, and contents
+#' for the options selected
 #' @param options list, list of selected options
 #' @param sheet dataframe, a user-submitted sheet
-#' @returns vector, a vector of the missing field names
+#' @returns list, a list of errors keyed by field name
 validateSheet <- function(options, sheet) {
-  # if dataType is arm, then we have to be sure they have the right columns for
-  # the outcomeType they selected, as this will be passed on to pairwise
-  # we also need to confirm, for all sheets, that the base columns are present
-  
   results <- list()
   required <- list("study_id" = list())
   
@@ -374,6 +385,14 @@ validateSheet <- function(options, sheet) {
       )
       results <- checkTypeAndExistence(sheet, c(required, tm))
     }
+    # ensure that we have at least 2 unique study_ids, but ignore if there's
+    # already an error there
+    if (!"study_id" %in% names(results)) {
+      if (length(unique(sheet[['study_id']])) < 2) {
+        results[['study_id']] <-
+          "study_id field must contain at least two unique values"
+      }
+    }
   } else {
     tm <- list(
       TE = list(type = "numeric"),
@@ -389,7 +408,7 @@ validateSheet <- function(options, sheet) {
 
 #' @param cols data.frame, a subset of relevant columns
 #' @param typeMap list, keyed by (expected) colname in df, with optional keys 'type' and 'gt'
-#' @returns list, keyed by sheet with error message or empty if no errors
+#' @returns list, keyed by field name with error message or empty if no errors
 checkTypeAndExistence <- function(df, typeMap) {
   errors <- list()
   for (fieldName in names(typeMap)) {
@@ -399,7 +418,7 @@ checkTypeAndExistence <- function(df, typeMap) {
       if (length(df[[fieldName]][!is.na(df[[fieldName]])]) < length(df[[fieldName]])) {
         errors[[fieldName]] <- paste0(fieldName, ' has empty values')
       }
-      # then check the type
+      # if existence check passes, check the type
       else {
         if (!is.null(typeMap[[fieldName]]$type)) {
           type <- typeMap[[fieldName]]$type
@@ -529,71 +548,110 @@ extractSheets <- function(pth) {
   output
 }
 
-#' format data to be passed to plotting function
-#' @param options list, list keyed by sheet of arguments to pass to functions
-#' @param input reactiveValues, the list of inputs, which will contain formatting values
+#' Run netmeta function with user values converting arm to contrast
+#' @param options list, user-provided arguments to pass to netmeta
+#' @param sheet dataframe, data from a user sheet
 #' @returns dataframe, dataframe that can be passed to rank heat plot function
-getRanks <- function(options, sheets, input) {
-  results <- list()
-  
-  for (sheetName in names(sheets)) {
-    df <- sheets[[sheetName]]
-    opts <- options[[sheetName]]
-    if (opts$dataFormat == "arm") {
-      transformed <- armToContrast(df, opts)
-    } else {
-      transformed <- df
-    }
-    
-    netmetaArgs <-
-      list(
-        data = transformed,
-        sm = opts$sm,
-        common = opts$model == "common",
-        random = opts$model != "common",
-        TE = transformed[['TE']],
-        seTE = transformed[['seTE']],
-        studlab = transformed[['studlab']],
-        treat1 = transformed[['treat1']],
-        treat2 = transformed[['treat2']]
-      )
-    
-    if (opts$model == "common") {
-      netmetaArgs$method.tau <- opts$methodTau
-    }
-    
-    netmetaRes <- do.call(netmeta, netmetaArgs)
-    
-    cons <-
-      netconnection(netmetaRes[['treat1']], netmetaRes[['treat2']], netmetaRes[['studlab']], data = netmetaRes)
-    if (cons$n.subnets > 1) {
-      # TODO: this needs proper handling
-      stop("User should update their data!")
-    }
-    
-    ranked <- netrank(
-      x = netmetaRes,
-      method = opts$method,
-      small.values = opts$smallValues,
-      common = opts$model == "common",
-      random = opts$model != "common"
-    )
-    
-    if (opts$model == "common") {
-      ranking = ranked$ranking.common
-    } else {
-      ranking = ranked$ranking.random
-    }
-    
-    results[[sheetName]] <- rankToDf(ranking, sheetName)
-    
+getNetmeta <- function(options, sheet) {
+  if (options$dataFormat == "arm") {
+    transformed <- armToContrast(sheet, options)
+  } else {
+    transformed <- sheet
   }
   
-  allResults <-
-    Reduce(function(a, b)
-      merge(a, b, by = "Treatment", all = TRUE),  results)
+  netmetaArgs <-
+    list(
+      data = transformed,
+      sm = options$sm,
+      common = options$model == "common",
+      random = options$model != "common",
+      TE = transformed[['TE']],
+      seTE = transformed[['seTE']],
+      studlab = transformed[['studlab']],
+      treat1 = transformed[['treat1']],
+      treat2 = transformed[['treat2']]
+    )
   
-  rhp.prepData(allResults)
+  if (options$model == "common") {
+    netmetaArgs$method.tau <- options$methodTau
+  }
+  
+  do.call(netmeta, netmetaArgs)
+  
+}
+
+#' get rankings
+#' @param options list, user-provided arguments to pass to netmeta
+#' @param netmetaRes netmeta object, results of netmeta function
+#' @param sheetName char, the name of the sheet
+#' @returns dataframe, dataframe that can be passed to rank heat plot function
+getRanks <- function(options, netmetaRes, sheetName) {
+  ranked <- netrank(
+    x = netmetaRes,
+    method = options$method,
+    small.values = options$smallValues,
+    common = options$model == "common",
+    random = options$model != "common"
+  )
+  
+  if (options$model == "common") {
+    ranking = ranked$ranking.common
+  } else {
+    ranking = ranked$ranking.random
+  }
+  
+  rankToDf(ranking, sheetName)
+}
+
+#' format data to be passed to plotting function
+#' @param options list, list keyed by sheet of arguments to pass to functions
+#' @param sheets list, list keyed by sheet name of user-supplied dataframes
+#' @param input reactiveValues, the list of inputs, which will contain formatting values
+#' @returns dataframe, dataframe that can be passed to rank heat plot function if successful,
+#' else a list of fields that failed the connectivity test
+getFormattedData <- function(options, sheets, input) {
+  errors = list()
+  # before passing to mapply, we have to make sure lists are in the same order
+  opts <- options[names(sheets)]
+  netmetaRes <-
+    mapply(getNetmeta,
+           opts,
+           sheets,
+           USE.NAMES = T,
+           SIMPLIFY = F)
+  
+  for (res in names(netmetaRes)) {
+    cons <-
+      netconnection(netmetaRes[[res]][['treat1']],
+                    netmetaRes[[res]][['treat2']],
+                    netmetaRes[[res]][['studlab']],
+                    data = netmetaRes[[res]])
+    print(cons$n.subnets)
+    if (cons$n.subnets > 1) {
+      errors[[res]] <- paste0("Data in ", res, " is unconnected!")
+    }
+  }
+  
+  if (length(errors)) {
+    errors
+  } else {
+    rankRes <-
+      mapply(
+        getRanks,
+        opts,
+        netmetaRes,
+        names(sheets),
+        USE.NAMES = T,
+        SIMPLIFY = F
+      )
+    
+    allResults <-
+      Reduce(function(a, b)
+        merge(a, b, by = "Treatment", all = TRUE),  rankRes)
+    
+    rhp.prepData(allResults)
+  }
+  
 }
 
 #' @param ranking named vector, typically retrieved from netrank() result as
