@@ -95,25 +95,33 @@ server <- function(input, output) {
   
   userData <- reactive(input$userData)
   
+  # dependecy on userData causes this to fire with every upload
+  # here we'll reset state
   sheetList <- reactive({
-    # reset ui on upload
     output$sheetValidationHeading <- NULL
     output$sheetValidationMsg <- NULL
     output$dataTable <- NULL
     output$heatmap <- NULL
     hideDisplayControls()
+    
     if (!is.null(userData())) {
       extractSheets(userData()$datapath)
     }
   })
   
+  # remove old tabs when new sheet is uploaded if they exist
+  observe({
+    if (!is.null(sheetList())) {
+      for (tab in names(sheetList())) {
+        removeTab('dynamicTabs', target = tab)
+      }
+    }
+  })
+
+  
   # BUILDING THE FORM
   #' This will create the UI with an identical tab for each uploaded sheet
   observe({
-    # remove tab headings
-    shinyjs::runjs("$('#dynamicTabs li').remove()")
-    # remove tab content
-    shinyjs::runjs("$('.tabbable .tab-content .tab-pane').remove()")
     for (name in names(sheetList())) {
       shiny::prependTab(inputId = "dynamicTabs",
                         shiny::tabPanel(
@@ -626,7 +634,6 @@ getFormattedData <- function(options, sheets, input) {
                     netmetaRes[[res]][['treat2']],
                     netmetaRes[[res]][['studlab']],
                     data = netmetaRes[[res]])
-    print(cons$n.subnets)
     if (cons$n.subnets > 1) {
       errors[[res]] <- paste0("Data in ", res, " is unconnected!")
     }

@@ -5,3 +5,7 @@
 .mt-5 {
   margin-top: 5px;
 }
+
+.display-controls {
+  display: none;
+}
