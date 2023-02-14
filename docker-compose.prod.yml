@@ -1,0 +1,13 @@
+version: "3.6"
+
+services:
+  shiny:
+    build: 
+      context: ./
+    restart: on-failure
+    networks:
+      - rankheat
+
+networks:
+  rankheat:
+

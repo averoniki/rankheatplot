@@ -1,13 +1,9 @@
-#### requirements ############
-library(circlize)
-library(RColorBrewer)
-library(grid)
-
 # ensure that it contains only numbers and/or NA
 isAllNumeric <- function(vec) {
   length(vec[is.na(as.numeric(vec))]) == length(vec[is.na(vec)])
 }
 
+#' Format the data for display
 #' @param vec a character or numeric vector
 formatData <- function(vec) {
   # check all are numeric
@@ -17,7 +13,14 @@ formatData <- function(vec) {
     vec
   }
 }
-
+#' Plot the rank-heat graphic
+#' @param chartData, datagram
+#' @param format, chr
+#' @param cexLabel, float, scale of label text
+#' @param cexValue, float, scale of value text
+#' @param cexSector, float, scale of sector text
+#' @return void
+#' @export
 rhp.rankheatplotCircos <-
   function(chartData,
            format = "percentage",
@@ -28,11 +31,11 @@ rhp.rankheatplotCircos <-
     rns <- rownames(chartData)
     chartData[nrow(chartData) + 1, ] <- colnames(chartData)
     rownames(chartData) <- c(rns, "Outcome")
-    pal = brewer.pal(11, "RdYlGn") # will return the hex values
+    pal = RColorBrewer::brewer.pal(11, "RdYlGn") # will return the hex values
     breaks <-
       seq(0, 100, 10) # assume for now, but need checks later (on format)
-    colFun <- colorRamp2(breaks, pal)
-    
+    colFun <- circlize::colorRamp2(breaks, pal)
+
     # wrap color function to swallow string values (i.e., labels)
     w_cf <- function(val) {
       clr = 'white'
@@ -41,21 +44,21 @@ rhp.rankheatplotCircos <-
       }
       clr
     }
-    
+
     m = nrow(chartData)
     # offset start so label row (last row) is at the top
     gapDegree = 2
     startDegree = 90 - (((360 / m) + gapDegree) / 2)
-    
-    circos.clear()
-    circos.par(
+
+    circlize::circos.clear()
+    circlize::circos.par(
       start.degree = startDegree,
       gap.degree = gapDegree,
       canvas.ylim = c(-1.3, 1),
       points.overflow.warning = FALSE
     )
-    
-    circos.heatmap(
+
+    circlize::circos.heatmap(
       cell.border = "grey",
       chartData,
       # split each row into a separate sector
@@ -65,21 +68,21 @@ rhp.rankheatplotCircos <-
       na.col = "white",
       track.height = .65,
     )
-    
-    
-    circos.track(
-      track.index = get.current.track.index(),
+
+
+    circlize::circos.track(
+      track.index = circlize::get.current.track.index(),
       bg.border = NA,
       # this will create graphical elements immediately after creation of cell
       panel.fun = function(x, y) {
         n = ncol(chartData)
-        if (get.cell.meta.data("sector.index") != "Outcome") {
-          circos.text(
-            rep(CELL_META$cell.xlim[2] / 2, n),
+        if (circlize::get.cell.meta.data("sector.index") != "Outcome") {
+          circlize::circos.text(
+            rep(circlize::CELL_META$cell.xlim[2] / 2, n),
             1:n - 0.5,
             # get data by rowname
             formatData(as.vector(t(
-              rev(chartData[get.cell.meta.data("sector.index"), ])
+              rev(chartData[circlize::get.cell.meta.data("sector.index"), ])
             ))),
             cex = cexValue,
             adj = c(.5, .5),
@@ -88,10 +91,10 @@ rhp.rankheatplotCircos <-
           )
         } else {
           # facing='bending' requires a loop rather than vector args
-          lbls = rev(names(chartData[get.cell.meta.data("sector.index"), ]))
+          lbls = rev(names(chartData[circlize::get.cell.meta.data("sector.index"), ]))
           for (i in 1:n) {
-            circos.text(
-              CELL_META$cell.xlim[2] / 2 ,
+            circlize::circos.text(
+              circlize::CELL_META$cell.xlim[2] / 2 ,
               i - .5,
               lbls[i],
               cex = cexLabel,
@@ -103,36 +106,36 @@ rhp.rankheatplotCircos <-
         }
       },
     )
-    
+
     # we'll roll our own sector labels so we have control over cex
     for (nm in rownames(chartData)) {
-      set.current.cell(sector.index = nm, track.index = 1)
-      
-      circos.text(
-        CELL_META$xcenter,
-        CELL_META$ylim[2] + 0.2,
+      circlize::set.current.cell(sector.index = nm, track.index = 1)
+
+      circlize::circos.text(
+        circlize::CELL_META$xcenter,
+        circlize::CELL_META$ylim[2] + 0.2,
         nm,
         facing = "bending.inside",
         adj = c(0.5, 0),
         cex=cexSector
       )
-      
+
     }
-    
+
     lgd = ComplexHeatmap::Legend(col_fun = colFun, direction = "horizontal")
     ComplexHeatmap::draw(
       lgd,
-      x = unit(.5, "npc"),
-      y = unit(.1, "npc"),
+      x = grid::unit(.5, "npc"),
+      y = grid::unit(.1, "npc"),
       just = c("center")
     )
-    
+
   }
 
 rhp.prepData <- function(df, format = "percentage") {
   # drop rows that don't have a label
   df <- df[!is.na(df[, 1]),]
-  
+
   # set first column as row names
   rns <- df[, 1]
   # drop first column

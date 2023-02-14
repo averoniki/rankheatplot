@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y libxml2 libxt6
 RUN install2.r --error \
     BiocManager \
     circlize \
+    grid \
     mvtnorm \
     netmeta \
     RColorBrewer \

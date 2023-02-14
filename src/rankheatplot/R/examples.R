@@ -1,9 +1,3 @@
-library(readxl)
-library(ComplexHeatmap)
-setwd('/home/rstudio/src')
-
-source('/home/rstudio/src/scripts/rankHeatCircos.R')
-
 #circos example
 run_circos_example <- function(type = 'medium') {
   data <-

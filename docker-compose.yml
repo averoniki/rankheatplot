@@ -7,12 +7,7 @@ services:
     container_name: rstudio
     restart: on-failure
     volumes:
-      - type: bind
-        source: ./src
-        target: /home/rstudio/src
-      - type: volume
-        source: r_libs_n
-        target: /usr/local/lib/R
+      - ./src:/home/rstudio/src
     networks:
       - rankheat
     environment:
