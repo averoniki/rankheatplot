@@ -1,6 +1,4 @@
-FROM rocker/rstudio:4.2.2
-
-RUN apt-get update && apt-get install -y libxml2 libxt6
+FROM rocker/shiny:4.2.2
 
 # Install R packages
 RUN install2.r --error \
@@ -17,6 +15,8 @@ RUN install2.r --error \
     rmarkdown \
     writexl
 
-ENV PROJECT_ROOT=/home/rstudio/src/rankheatplot
-
 RUN R -e "BiocManager::install('ComplexHeatmap')"
+
+ENV PROJECT_ROOT=/srv/shiny-server/rankheatplot
+
+COPY ./src/rankheatplot/R /srv/shiny-server/rankheatplot

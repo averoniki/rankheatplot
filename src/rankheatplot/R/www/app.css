@@ -9,3 +9,7 @@
 .display-controls {
   display: none;
 }
+
+.restart-button {
+  display: none;
+}

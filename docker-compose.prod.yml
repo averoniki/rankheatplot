@@ -1,12 +1,15 @@
 version: "3.6"
 
 services:
-  shiny:
-    build: 
-      context: ./
-    restart: on-failure
+  shiny-server:
+    build:
+      dockerfile: Dockerfile.server
+      context: .
+    restart: always
     networks:
       - rankheat
+    ports:
+      - 2203:3838
 
 networks:
   rankheat:
