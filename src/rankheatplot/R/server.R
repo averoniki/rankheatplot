@@ -509,7 +509,7 @@ armToContrast <- function(sheet, options) {
     args$n <- sheet[['n']]
     args$event <- sheet[['r']]
     args$data <- sheet
-    args$sm <- options$ms
+    args$sm <- options$sm
   }
   if (options[['outcomeType']] == "continuous") {
     args$n <- sheet[['n']]
@@ -517,9 +517,10 @@ armToContrast <- function(sheet, options) {
     args$sd <- sheet[['sd']]
   }
   if (options[['outcomeType']] == "tte") {
-    args$d <- sheet[['d']]
-    args$t <- sheet[['t']]
+    args$event <- sheet[['d']]
     args$time <- sheet[['time']]
+    args$data <- sheet
+    args$sm <- options$sm
   }
 
   do.call(netmeta::pairwise, args = args, quote = F)
