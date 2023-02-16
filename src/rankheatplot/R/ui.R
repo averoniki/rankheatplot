@@ -1,7 +1,8 @@
 shiny::shinyUI(
   shiny::navbarPage(
     shiny::tags$head(
-      shiny::tags$link(rel = "stylesheet", type = "text/css", href = "app.css")
+      shiny::tags$link(rel = "stylesheet", type = "text/css", href = "app.css"),
+      shiny::tags$link(rel = "shortcut icon", href = "favicon.ico")
     ),
     title = "RankHeat Plot",
     shinyjs::useShinyjs(),
@@ -22,9 +23,10 @@ shiny::shinyUI(
             )
           )),
           shiny::fluidRow(
-            shiny::column(class = "mt-5",
+            shiny::column(
+              class = "mt-5",
               12,
-              shiny::actionButton("submit", "Submit"),
+              shiny::actionButton("submit", "Submit", class = "submit-button"),
               shiny::actionButton("startOver", "Start Over", class = "restart-button")
             )
           ),
@@ -78,13 +80,20 @@ shiny::shinyUI(
                       )))
       ),
       shiny::fluidRow(shiny::tags$hr()),
-      shiny::fluidRow(
-        shiny::column(6,
-                      shiny::plotOutput(
-                        "heatmap", width = "100%", height = "700px"
-                      )),
-        shiny::column(6,
-                      shiny::tableOutput("dataTable"))
+      shiny::div(
+        class = "results-area",
+        shiny::fluidRow(shiny::column(
+          12,
+          shiny::downloadButton("heatmapDownload")
+        ),),
+        shiny::fluidRow(
+          shiny::column(6,
+                        shiny::plotOutput(
+                          "heatmap", width = "100%", height = "700px"
+                        )),
+          shiny::column(6,
+                        shiny::tableOutput("dataTable"))
+        )
       )
     ),
     shiny::tabPanel(title = "About",

@@ -12,8 +12,11 @@ shiny::shinyServer(function(input, output) {
   # dependecy on userData causes this to fire with every upload
   sheetList <- reactive({
     if (!is.null(userData())) {
+      # disable file upload control
       shinyjs::disable('userData')
       shinyjs::show('startOver')
+      shinyjs::show('submit')
+      shinyjs::disable('submit')
       extractSheets(userData()$datapath)
     }
   })
@@ -23,6 +26,7 @@ shiny::shinyServer(function(input, output) {
   observeEvent(input$startOver, {
     shinyjs::enable('userData')
     shinyjs::hide('startOver')
+    shinyjs::hide('submit')
     if (!is.null(sheetList())) {
       for (tab in names(sheetList())) {
         removeTab('dynamicTabs', target = tab)
@@ -169,6 +173,21 @@ shiny::shinyServer(function(input, output) {
           cexSector = input$cexSector
         )
       })
+      output$heatmapDownload <- downloadHandler(
+        filename = function() {
+          "rankheat.png"
+        },
+        content = function(file){
+          png(file) # open the png device
+          rhp.rankheatplotCircos(
+            formattedValues(),
+            cexLabel = input$cexLabel,
+            cexValue = input$cexValue,
+            cexSector = input$cexSector
+          )
+          dev.off()  # turn the device off
+        }
+      )
       output$dataTable <-
         renderTable(formattedValues(), rownames = T)
       showDisplayControls()
@@ -200,10 +219,12 @@ createErrorDisplayList <- function(errorList, output) {
 
 hideDisplayControls <- function() {
   shinyjs::hide(selector = ".display-controls")
+  shinyjs::hide(selector = ".results-area")
 }
 
 showDisplayControls <- function() {
   shinyjs::show(selector = ".display-controls")
+  shinyjs::show(selector = ".results-area")
 }
 
 # list of functions, one per possible input
