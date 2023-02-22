@@ -34,19 +34,19 @@ shiny::shinyServer(function(input, output) {
   })
 
   # put UI in state for selecting options
-  setLoadedUI <- function(){
+  setLoadedUI <- function() {
     shinyjs::disable('userData')
     shinyjs::show('startOver')
-    shinyjs::show(selector=".tabbable")
+    shinyjs::show(selector = ".dynamic-tabs-container")
     shinyjs::show('submit')
     shinyjs::disable('submit')
   }
 
-  unsetLoadedUI <- function(){
+  unsetLoadedUI <- function() {
     shinyjs::enable('userData')
     shinyjs::hide('startOver')
     shinyjs::hide('submit')
-    shinyjs::hide(selector=".tabbable")
+    shinyjs::hide(selector = ".dynamic-tabs-container")
   }
 
   # BUILDING THE FORM
@@ -140,6 +140,19 @@ shiny::shinyServer(function(input, output) {
     }
   })
 
+  observeEvent(input$useAll, {
+    options <- groupValues(input, names(sheetList()))
+
+    selected = options[[input$dynamicTabs]]
+
+    for (sheetName in names(sheetList())) {
+      for (option in names(selected)) {
+        updateRadioButtons(inputId = paste0(sheetName, "_option_", option),
+                           selected = paste0(selected[[option]]))
+      }
+    }
+  })
+
   # bind formatted data object to submit button
   formattedValues <- bindEvent(reactive({
     options <-
@@ -187,7 +200,7 @@ shiny::shinyServer(function(input, output) {
         filename = function() {
           "rankheat.png"
         },
-        content = function(file){
+        content = function(file) {
           png(file) # open the png device
           rhp.rankheatplotCircos(
             formattedValues(),

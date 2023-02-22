@@ -49,7 +49,9 @@ shiny::shinyUI(
               12,
               class = "mt-5 mb-5 display-controls",
               shiny::div(
-                shiny::p(shiny::em("Use the controls below to adjust the label fonts in the graphic")),
+                shiny::p(
+                  shiny::em("Use the controls below to adjust the label fonts in the graphic")
+                ),
                 shiny::div(
                   shiny::sliderInput(
                     "cexValue",
@@ -81,17 +83,22 @@ shiny::shinyUI(
             )
           )
         ),
-        shiny::column(8,
-                      shiny::fluidRow(shiny::column(
-                        12,
-                        shiny::tabsetPanel(
-                          id = "dynamicTabs",
-                          header = shiny::p(
-                            class = "tab-heading",
-                            em("Use the controls below to configure the analysis for this sheet.")
-                          )
-                        )
-                      )))
+        shiny::column(8, class = "dynamic-tabs-container",
+                      shiny::fluidRow(
+                        shiny::column(12,
+                                      shiny::div(
+                                        shiny::tabsetPanel(
+                                          id = "dynamicTabs",
+                                          header = shiny::p(
+                                            class = "tab-heading",
+                                            em("Use the controls below to configure the analysis for this sheet.")
+                                          )
+                                        )
+                                      )),
+                        shiny::fluidRow(shiny::column(
+                          12, actionLink(inputId = "useAll", label = "Apply to all sheets")
+                        ))
+                      ))
       ),
       shiny::fluidRow(shiny::tags$hr()),
       shiny::div(
@@ -99,7 +106,7 @@ shiny::shinyUI(
         shiny::fluidRow(shiny::column(
           12,
           shiny::downloadButton("heatmapDownload")
-        ),),
+        ), ),
         shiny::fluidRow(
           shiny::column(6,
                         shiny::plotOutput(

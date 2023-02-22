@@ -24,7 +24,7 @@
   These controls are initially hidden, then managed by js.
   As this evolves, they can probably be grouped.
 */
-.tabbable {
+.dynamic-tabs-container {
   display: none;
 }
 
