@@ -363,24 +363,67 @@ dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
 proident, sunt in culpa qui officia deserunt mollit anim id est
 laborum.</p>
 </div>
-<div id="description" class="section level2">
-<h2>Description</h2>
-<p>Lorem ipsum dolor sit amet, consectetur <a href="http://google.com">adipiscing</a> elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-consequat. Duis aute irure dolor in reprehenderit in voluptate velit
-esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
-id est laborum.</p>
-<div id="subheading" class="section level3">
-<h3>Subheading</h3>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
-sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-mollit anim id est laborum.</p>
+<div id="data-format" class="section level2">
+<h2>Data Format</h2>
+<p>The rank heat plot expects the uploaded data to be a spreadsheet in
+the .xlsx format. The data for each treatment outcome should be included
+in its own sheet, and the name of each sheet will be used to label that
+outcome in the plot. The required format of each sheet, including
+required column names and data types, will vary according to the type of
+data being uploaded and the type of analysis being requested. Below is a
+list of required columns and their corresponding data types.</p>
+<div id="for-all-analyses" class="section level4">
+<h4>For all analyses:</h4>
+<ul>
+<li><code>study_id</code> <string>: a unique identifier for the
+study</li>
+</ul>
+</div>
+<div id="for-data-in-arm-format" class="section level3">
+<h3>For data in <strong>ARM</strong> format:</h3>
+<ul>
+<li>Always required:
+<ul>
+<li><code>t</code> <em>character</em>: Treatment identifier</li>
+</ul></li>
+<li>Required for outcome type <strong>Binary</strong>:
+<ul>
+<li><code>n</code>: <em>integer</em> number of observations for
+individual treatment arms, must be greater than zero</li>
+<li><code>r</code>: <em>integer</em> number of events for individual
+treatment arms, must be greater than or equal to zero</li>
+</ul></li>
+<li>Required for outcome type <strong>Continuous</strong>
+<ul>
+<li><code>n</code>: <em>integer</em> number of observations for
+individual treatment arms, must be greater than zero</li>
+<li><code>sd</code>: <em>number</em> the standard deviation for
+individual treatment arms, must be greater than zero</li>
+<li><code>m</code>: <em>number</em> estimated means for individual
+treatment arms</li>
+</ul></li>
+<li>Required for outcome type <strong>Time To Event</strong>
+<ul>
+<li><code>d</code>: <em>integer</em> number of events for individual
+treatment arms, must be greater than or equal to zero</li>
+<li><code>time</code>: <em>number</em> information on person time at
+risk for individual treatment arms, must be greater than zero</li>
+</ul></li>
+</ul>
+</div>
+<div id="for-data-in-in-contrast-format" class="section level3">
+<h3>For data in in <strong>Contrast</strong> format</h3>
+<ul>
+<li><code>TE</code>: <em>number</em> estimated treatment effects for
+individual treatment arms</li>
+<li><code>seTE</code>: <em>number</em> standard errors of estimated
+treatment effect for individual treatment arms, must be greater than
+zero</li>
+<li><code>treat1</code>: <em>character</em> Label/Number for first
+treatment</li>
+<li><code>treat2</code>: <em>character</em> Label/Number for second
+treatment.</li>
+</ul>
 </div>
 </div>
 <div id="citing-rank-heat-plot" class="section level2">

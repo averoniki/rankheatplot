@@ -2,13 +2,32 @@
 
 [Lorem ipsum](http://google.com) dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
-## Description
+## Data Format
 
-Lorem ipsum dolor sit amet, consectetur [adipiscing](http://google.com) elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+The rank heat plot expects the uploaded data to be a spreadsheet in the .xlsx format. The data for each treatment outcome should be included in its own sheet, and the name of each sheet will be used to label that outcome in the plot. The required format of each sheet, including required column names and data types, will vary according to the type of data being uploaded and the type of analysis being requested. Below is a list of required columns and their corresponding data types.
 
-### Subheading
+#### For all analyses:
+- `study_id` <string>: a unique identifier for the study
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+### For data in **ARM** format:
+- Always required:
+  - `t` _character_: Treatment identifier 
+- Required for outcome type **Binary**:
+  - `n`: _integer_ number of observations for individual treatment arms, must be greater than zero
+  - `r`: _integer_ number of events for individual treatment arms, must be greater than or equal to zero
+- Required for outcome type **Continuous**
+  - `n`: _integer_ number of observations for individual treatment arms, must be greater than zero
+  - `sd`: _number_ the standard deviation for individual treatment arms, must be greater than zero
+  - `m`: _number_ estimated means for individual treatment arms
+- Required for outcome type **Time To Event**
+  - `d`: _integer_ number of events for individual treatment arms, must be greater than or equal to zero
+  - `time`: _number_  information on person time at risk for individual treatment arms, must be greater than zero
+  
+### For data in in **Contrast** format
+- `TE`: _number_ estimated treatment effects for individual treatment arms
+- `seTE`: _number_ standard errors of estimated treatment effect for individual treatment arms, must be greater than zero
+- `treat1`: _character_ Label/Number for first treatment
+- `treat2`: _character_ Label/Number for second treatment.
 
 ## Citing Rank-Heat Plot
 
