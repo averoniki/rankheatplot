@@ -16,8 +16,8 @@ services:
       - FULLCHAIN_PATH
     volumes:
       - ./nginx:/etc/nginx
-      #- ${FULLCHAIN_PATH}:/etc/nginx/ssl/certs/fullchain.pem:ro
-      #- ${PRIVKEY_PATH}:/etc/nginx/ssl/certs/privkey.pem:ro
+      - ${FULLCHAIN_PATH}:/etc/nginx/ssl/certs/fullchain.pem:ro
+      - ${PRIVKEY_PATH}:/etc/nginx/ssl/certs/privkey.pem:ro
     networks:
       - rankheat
     depends_on:
@@ -28,4 +28,3 @@ services:
 
 networks:
   rankheat:
-
