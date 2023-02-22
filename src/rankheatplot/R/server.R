@@ -12,11 +12,7 @@ shiny::shinyServer(function(input, output) {
   # dependecy on userData causes this to fire with every upload
   sheetList <- reactive({
     if (!is.null(userData())) {
-      # disable file upload control
-      shinyjs::disable('userData')
-      shinyjs::show('startOver')
-      shinyjs::show('submit')
-      shinyjs::disable('submit')
+      setLoadedUI()
       extractSheets(userData()$datapath)
     }
   })
@@ -24,9 +20,7 @@ shiny::shinyServer(function(input, output) {
   # we'll make the user explicitly start over
   # so we can cleanly remove tabs w/o timing issues from relying on sheetList changes
   observeEvent(input$startOver, {
-    shinyjs::enable('userData')
-    shinyjs::hide('startOver')
-    shinyjs::hide('submit')
+    unsetLoadedUI()
     if (!is.null(sheetList())) {
       for (tab in names(sheetList())) {
         removeTab('dynamicTabs', target = tab)
@@ -38,6 +32,22 @@ shiny::shinyServer(function(input, output) {
       hideDisplayControls()
     }
   })
+
+  # put UI in state for selecting options
+  setLoadedUI <- function(){
+    shinyjs::disable('userData')
+    shinyjs::show('startOver')
+    shinyjs::show(selector=".tabbable")
+    shinyjs::show('submit')
+    shinyjs::disable('submit')
+  }
+
+  unsetLoadedUI <- function(){
+    shinyjs::enable('userData')
+    shinyjs::hide('startOver')
+    shinyjs::hide('submit')
+    shinyjs::hide(selector=".tabbable")
+  }
 
   # BUILDING THE FORM
   # This will create the UI with an identical tab for each uploaded sheet

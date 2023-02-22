@@ -6,10 +6,32 @@
   margin-top: 5px;
 }
 
+.navbar {
+  padding: 15px
+}
+
+.navbar-header .navbar-brand {
+  font-size: 72px;
+  min-height: 50px;
+}
+
+.nav.navbar-nav {
+  font-size: 36px;
+}
+
+
 /*
   These controls are initially hidden, then managed by js.
   As this evolves, they can probably be grouped.
 */
+.tabbable {
+  display: none;
+}
+
+.tabbable .tab-heading {
+  margin: 10px;
+  padding: 10px;
+}
 
 .display-controls {
   display: none;
@@ -26,3 +48,4 @@
 .results-area {
   display: none;
 }
+

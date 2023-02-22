@@ -19,7 +19,12 @@ shiny::shinyUI(
                 "application/vnd.ms-excel"
               ),
               inputId = "userData",
-              label = shiny::h3("Upload an .xlsx file")
+              label = shiny::div(
+                shiny::h3("Upload an .xlsx file"),
+                shiny::p(
+                  "Each sheet should contain data for a single outcome. For more information, see the About Page."
+                ),
+              )
             )
           )),
           shiny::fluidRow(
@@ -44,31 +49,34 @@ shiny::shinyUI(
               12,
               class = "mt-5 mb-5 display-controls",
               shiny::div(
-                shiny::sliderInput(
-                  "cexValue",
-                  "Value Label Size:",
-                  min = .1,
-                  max = 2,
-                  value = .75
+                shiny::p(shiny::em("Use the controls below to adjust the label fonts in the graphic")),
+                shiny::div(
+                  shiny::sliderInput(
+                    "cexValue",
+                    "Value Label Size:",
+                    min = .1,
+                    max = 2,
+                    value = .75
+                  ),
                 ),
-              ),
-              shiny::div(
-                shiny::sliderInput(
-                  "cexLabel",
-                  "Outcome Label Size:",
-                  min = .1,
-                  max = 2,
-                  value = .65
+                shiny::div(
+                  shiny::sliderInput(
+                    "cexLabel",
+                    "Outcome Label Size:",
+                    min = .1,
+                    max = 2,
+                    value = .65
+                  ),
                 ),
-              ),
-              shiny::div(
-                shiny::sliderInput(
-                  "cexSector",
-                  "Treatment Label Size:",
-                  min = .1,
-                  max = 2,
-                  value = 1
-                ),
+                shiny::div(
+                  shiny::sliderInput(
+                    "cexSector",
+                    "Treatment Label Size:",
+                    min = .1,
+                    max = 2,
+                    value = 1
+                  ),
+                )
               )
             )
           )
@@ -76,7 +84,13 @@ shiny::shinyUI(
         shiny::column(8,
                       shiny::fluidRow(shiny::column(
                         12,
-                        shiny::tabsetPanel(id = "dynamicTabs")
+                        shiny::tabsetPanel(
+                          id = "dynamicTabs",
+                          header = shiny::p(
+                            class = "tab-heading",
+                            em("Use the controls below to configure the analysis for this sheet.")
+                          )
+                        )
                       )))
       ),
       shiny::fluidRow(shiny::tags$hr()),
