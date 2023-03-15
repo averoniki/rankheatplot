@@ -54,7 +54,7 @@ rhp.rankheatplotCircos <-
     circlize::circos.par(
       start.degree = startDegree,
       gap.degree = gapDegree,
-      canvas.ylim = c(-1.3, 1),
+      canvas.ylim = c(-1.3, 1.3),
       points.overflow.warning = FALSE
     )
 
@@ -113,7 +113,7 @@ rhp.rankheatplotCircos <-
 
       circlize::circos.text(
         circlize::CELL_META$xcenter,
-        circlize::CELL_META$ylim[2] + 0.2,
+        circlize::CELL_META$ylim[2] + 0.1,
         nm,
         facing = "bending.inside",
         adj = c(0.5, 0),
