@@ -69,13 +69,13 @@ rhp.rankheatplotCircos <-
       track.height = .65,
     )
 
-
     circlize::circos.track(
       track.index = circlize::get.current.track.index(),
       bg.border = NA,
       # this will create graphical elements immediately after creation of cell
       panel.fun = function(x, y) {
         n = ncol(chartData)
+
         if (circlize::get.cell.meta.data("sector.index") != "Outcome") {
           circlize::circos.text(
             rep(circlize::CELL_META$cell.xlim[2] / 2, n),
@@ -91,7 +91,7 @@ rhp.rankheatplotCircos <-
           )
         } else {
           # facing='bending' requires a loop rather than vector args
-          lbls = rev(names(chartData[circlize::get.cell.meta.data("sector.index"), ]))
+          lbls = rev(names(chartData))
           for (i in 1:n) {
             circlize::circos.text(
               circlize::CELL_META$cell.xlim[2] / 2 ,
@@ -135,18 +135,22 @@ rhp.rankheatplotCircos <-
 rhp.prepData <- function(df, format = "percentage") {
   # drop rows that don't have a label
   df <- df[!is.na(df[, 1]),]
-
+  # save these in case they get dropped in
+  colns <- names(df)[0:-1]
   # set first column as row names
   rns <- df[, 1]
-  # drop first column
-  df <- df[,-c(1)]
+
+  # drop first column (if only has one col, will be converted to vec, so cast and set names...)
+  df <- as.data.frame(df[,-c(1)])
+
   if (format == "percentage") {
     df <- as.data.frame(sapply(df, function(x)
       x * 100))
   } else if (format == "rank") {
-    df <- as.data.frame(sapplu(df, function(x)
+    df <- as.data.frame(sapply(df, function(x)
       (1 - x) / nrow(df)))
   }
+  colnames(df) <- colns
   rownames(df) <- rns
   df
 }
