@@ -1,4 +1,4 @@
-shiny::shinyUI(
+shiny::shinyUI(shiny::div(
   shiny::navbarPage(
     shiny::tags$head(
       shiny::tags$link(rel = "stylesheet", type = "text/css", href = "app.css"),
@@ -11,22 +11,8 @@ shiny::shinyUI(
       shiny::fluidRow(
         shiny::column(
           4,
-          shiny::fluidRow(shiny::column(
-            12,
-            shiny::fileInput(
-              accept = c(
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "application/vnd.ms-excel"
-              ),
-              inputId = "userData",
-              label = shiny::div(
-                shiny::h3("Upload an .xlsx file"),
-                shiny::p(
-                  "Each sheet should contain data for a single outcome. For more information, see the About Page."
-                ),
-              )
-            )
-          )),
+          shiny::fluidRow(shiny::column(12,
+                                        uiOutput('file_input'))),
           shiny::fluidRow(
             shiny::column(
               class = "mt-5",
@@ -119,5 +105,13 @@ shiny::shinyUI(
     ),
     shiny::tabPanel(title = "About",
                     shiny::fluidRow(shiny::htmlOutput("about"))),
+  ),
+  shiny::div(
+    class = "footer",
+    paste0(
+      "Copyright ",
+      substr(date(), nchar(date()) - 3, nchar(date())),
+      " Knowledge Translation Program"
+    )
   )
-)
+))
