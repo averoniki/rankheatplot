@@ -7,6 +7,18 @@ shiny::shinyServer(function(input, output) {
     includeHTML(path = paste0(projectRoot, .Platform$file.sep, "about.html"))
   })
 
+  output$plotShot <- renderImage({
+    list(
+      src = paste0(
+        projectRoot,
+        .Platform$file.sep,
+        "www" ,
+        .Platform$file.sep,
+        "plot-shot.png"
+      )
+    )
+  }, deleteFile = F)
+
   # define this server-side so we can have a dependency on startOver button
   # so that it resets properly
   output$file_input <- renderUI({
@@ -26,26 +38,6 @@ shiny::shinyServer(function(input, output) {
     )
   })
 
-  userData <- reactive(input$userData)
-
-  # dependency on userData causes this to fire with every upload
-  sheetList <- reactive({
-    if (!is.null(userData())) {
-      setLoadedUI()
-      extractSheets(userData()$datapath)
-    }
-  })
-
-  output$treatmentList <- shiny::renderUI({
-    if (!is.null(userData())) {
-      treatmentList <- getTreatmentList(sheetList())
-      sortable::rank_list(input_id = "treatmentList",
-                          labels = treatmentList,
-                          text = "Drag the labels below to order the treatments in the plot")
-    } else {
-      NULL
-    }
-  })
 
   # we'll make the user explicitly start over
   # so we can cleanly remove tabs w/o timing issues from relying on sheetList changes
@@ -63,10 +55,33 @@ shiny::shinyServer(function(input, output) {
     }
   })
 
+  # dependency on userData causes this to fire with every upload
+  sheetList <- reactive({
+    if (!is.null(input$userData)) {
+      setLoadedUI()
+      extractSheets(input$userData$datapath)
+    } else {
+      unsetLoadedUI()
+      NULL
+    }
+  })
+
+  output$treatmentList <- bindEvent(shiny::renderUI({
+    req(sheetList())
+    tl <- getTreatmentList(sheetList())
+    sortable::rank_list(input_id = "treatmentList",
+                        labels = tl,
+                        text = "Drag the labels below to order the treatments in the plot")
+  }), sheetList(), ignoreNULL = T)
+
+  output$foo <- bindEvent(shiny::renderUI({
+    print("bar")
+    renderText("bar")
+  }), sheetList())
+
   # BUILDING THE FORM
   # This will create the UI with an identical tab for each uploaded sheet
-  # dependency here is on sheetList
-  observe({
+  observeEvent(sheetList(), {
     for (name in names(sheetList())) {
       shiny::prependTab(inputId = "dynamicTabs",
                         shiny::tabPanel(
@@ -195,7 +210,7 @@ shiny::shinyServer(function(input, output) {
         formatted <-
           getFormattedData(options, sheetList(), input)
 
-        formatted <- formatted[input$treatmentList,]
+        formatted <- formatted[input$treatmentList, ]
 
         shinybusy::remove_modal_spinner()
         # check if we got an error list back
@@ -253,6 +268,7 @@ setLoadedUI <- function() {
   shinyjs::show('startOver')
   shinyjs::show(selector = ".dynamic-tabs-container")
   shinyjs::show('submit')
+  shinyjs::show('treatmentList')
   shinyjs::disable('submit')
 }
 
@@ -261,6 +277,7 @@ unsetLoadedUI <- function() {
   shinyjs::enable('userData')
   shinyjs::hide('startOver')
   shinyjs::hide('submit')
+  shinyjs::hide("treatmentList")
   shinyjs::hide(selector = ".dynamic-tabs-container")
 }
 
@@ -285,13 +302,11 @@ createErrorDisplayList <- function(errorList, output) {
 }
 
 hideDisplayControls <- function() {
-  shinyjs::hide(selector = ".display-controls")
-  shinyjs::hide(selector = ".results-area")
+  shinyjs::hide(selector = ".plot-panel")
 }
 
 showDisplayControls <- function() {
-  shinyjs::show(selector = ".display-controls")
-  shinyjs::show(selector = ".results-area")
+  shinyjs::show(selector = ".plot-panel")
 }
 
 #' @param sheetList, list, list of dataframes, keyed by outcome

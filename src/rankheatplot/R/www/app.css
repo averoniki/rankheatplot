@@ -57,12 +57,12 @@ body {
 }
 
 .navbar-header .navbar-brand {
-  font-size: 72px;
+  font-size: 54px;
   min-height: 50px;
 }
 
 .nav.navbar-nav {
-  font-size: 36px;
+  font-size: 24px;
 }
 
 .tabbable .tab-heading {
@@ -74,23 +74,10 @@ body {
   These controls are initially hidden, then managed by js.
   As this evolves, they can probably be grouped.
 */
-.dynamic-tabs-container {
+.dynamic-tabs-container,
+.restart-button,
+.submit-button,
+.plot-panel
+{
   display: none;
 }
-
-.display-controls {
-  display: none;
-}
-
-.restart-button {
-  display: none;
-}
-
-.submit-button {
-  display: none;
-}
-
-.results-area {
-  display: none;
-}
-
