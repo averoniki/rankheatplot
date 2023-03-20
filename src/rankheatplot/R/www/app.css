@@ -20,6 +20,29 @@ body {
     font-weight: bold;
 }
 
+.shiny-options-group {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap
+}
+
+.shiny-options-group .radio-inline {
+    display: flex;
+    padding: 0;
+    margin: 0;
+}
+
+.shiny-options-group .radio-inline span {
+  margin: 0px 4px;
+}
+
+.shiny-options-group .radio-inline input[type=radio] {
+  margin: 0;
+  position: relative;
+  display: flex;
+}
+
 
 .mt-5 {
   margin-bottom: 5px;

@@ -27,8 +27,9 @@ rhp.rankheatplotCircos <-
            cexLabel = .65,
            cexValue = .75,
            cexSector = 1) {
-    chartData = as.data.frame(chartData) # will collapse to vector if only one row
+    chartData <- as.data.frame(chartData) # will collapse to vector if only one column
     rns <- rownames(chartData)
+    # add explicit row for outcomes
     chartData[nrow(chartData) + 1, ] <- colnames(chartData)
     rownames(chartData) <- c(rns, "Outcome")
     pal = RColorBrewer::brewer.pal(11, "RdYlGn") # will return the hex values
@@ -61,7 +62,7 @@ rhp.rankheatplotCircos <-
     circlize::circos.heatmap(
       cell.border = "grey",
       chartData,
-      # split each row into a separate sector
+      # split each row (outcome) into a separate sector
       split = rownames(chartData),
       col = w_cf,
       cluster = F,

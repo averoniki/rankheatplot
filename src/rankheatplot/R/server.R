@@ -81,6 +81,7 @@ shiny::shinyServer(function(input, output) {
                                 4,
                                 radioButtons(
                                   inputId = paste0(name, "_option_dataFormat"),
+                                  inline = T,
                                   label = "Select Data Format",
                                   choiceNames = c("Arm Level", "Contrast Level"),
                                   choiceValues = c("arm", "contrast"),
@@ -88,6 +89,7 @@ shiny::shinyServer(function(input, output) {
                                 ),
                                 radioButtons(
                                   inputId = paste0(name, "_option_outcomeType"),
+                                  inline = T,
                                   label = "Select Outcome Type",
                                   choiceNames = c("Binary", "Continuous", "Time to Event", "Survival"),
                                   choiceValues = c("binary", "continuous", "tte", "survival"),
@@ -98,6 +100,7 @@ shiny::shinyServer(function(input, output) {
                                 4,
                                 radioButtons(
                                   inputId = paste0(name, "_option_sm"),
+                                  inline = T,
                                   label = "Select Effect Size",
                                   choiceNames = c("OR", "RR", "RD", "MD", "SMD", "ROM", "IRR", "HR"),
                                   choiceValues = c("or", "rr", "rd", "md", "smd", "rom", "irr", "hr"),
@@ -105,6 +108,7 @@ shiny::shinyServer(function(input, output) {
                                 ),
                                 radioButtons(
                                   inputId = paste0(name, "_option_smallValues"),
+                                  inline = T,
                                   label = "Select Small Values",
                                   choiceNames = c("Good", "Bad"),
                                   choiceValues = c("good", "bad"),
@@ -115,6 +119,7 @@ shiny::shinyServer(function(input, output) {
                                 4,
                                 radioButtons(
                                   inputId = paste0(name, "_option_model"),
+                                  inline = T,
                                   label = "Select Model",
                                   choiceNames = c("Common effect", "Random effects"),
                                   choiceValues = c("common", "random"),
@@ -122,6 +127,7 @@ shiny::shinyServer(function(input, output) {
                                 ),
                                 radioButtons(
                                   inputId = paste0(name, "_option_methodTau"),
+                                  inline = T,
                                   label = "Select Method.tau",
                                   choiceNames = c("REML", "ML", "DL"),
                                   choiceValues = c("reml", "ml", "dl"),
@@ -129,6 +135,7 @@ shiny::shinyServer(function(input, output) {
                                 ),
                                 radioButtons(
                                   inputId = paste0(name, "_option_method"),
+                                  inline = T,
                                   label = "Select Rank Statistic",
                                   choiceNames = c("SUCRA", "P-Score"),
                                   choiceValues = c("SUCRA", "P-score"),
