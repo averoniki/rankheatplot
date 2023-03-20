@@ -13,10 +13,11 @@ RUN install2.r --error \
     shiny \
     shinybusy \
     shinyjs \
+    sortable \
     stringr \
     rmarkdown \
     writexl
 
-ENV PROJECT_ROOT=/home/rstudio/src/rankheatplot
+ENV PROJECT_ROOT=/home/rstudio/src/rankheatplot/R
 
 RUN R -e "BiocManager::install('ComplexHeatmap')"

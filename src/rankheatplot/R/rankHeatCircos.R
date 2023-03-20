@@ -14,7 +14,7 @@ formatData <- function(vec) {
   }
 }
 #' Plot the rank-heat graphic
-#' @param chartData, datagram
+#' @param chartData, dataframe
 #' @param format, chr
 #' @param cexLabel, float, scale of label text
 #' @param cexValue, float, scale of value text

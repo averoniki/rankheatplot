@@ -69,22 +69,27 @@ shiny::shinyUI(shiny::div(
             )
           )
         ),
-        shiny::column(8, class = "dynamic-tabs-container",
-                      shiny::fluidRow(
-                        shiny::column(12,
-                                      shiny::div(
-                                        shiny::tabsetPanel(
-                                          id = "dynamicTabs",
-                                          header = shiny::p(
-                                            class = "tab-heading",
-                                            em("Use the controls below to configure the analysis for this sheet.")
-                                          )
-                                        )
-                                      )),
-                        shiny::fluidRow(shiny::column(
-                          12, actionLink(inputId = "useAll", label = "Apply to all sheets")
-                        ))
-                      ))
+        shiny::column(
+          8,
+          class = "dynamic-tabs-container",
+          shiny::fluidRow(
+            shiny::column(12,
+                          shiny::div(
+                            shiny::tabsetPanel(
+                              id = "dynamicTabs",
+                              header = shiny::p(
+                                class = "tab-heading",
+                                em("Use the controls below to configure the analysis for this sheet.")
+                              )
+                            )
+                          )),
+            shiny::fluidRow(shiny::column(
+              12,
+              actionLink(inputId = "useAll", label = "Apply these settings to all sheets")
+            ))
+          ),
+          shiny::fluidRow(shiny::column(4, class="mt-5 mb-5", shiny::uiOutput('treatmentList')))
+        )
       ),
       shiny::fluidRow(shiny::tags$hr()),
       shiny::div(

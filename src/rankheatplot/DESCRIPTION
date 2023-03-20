@@ -21,5 +21,6 @@ Imports:
     shiny,
     shinybusy,
     shinyjs,
+    sortable,
     stringr,
     writexl
