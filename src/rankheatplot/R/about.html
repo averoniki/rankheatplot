@@ -1,0 +1,114 @@
+<h2 id="about-rank-heat-plot">About Rank-Heat Plot</h2>
+<p>
+  <a href="http://google.com">Lorem ipsum</a> dolor sit amet, consectetur
+  adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+  aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+  nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+  reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+  deserunt mollit anim id est laborum.
+</p>
+<h2 id="quick-start">Quick Start</h2>
+<p>
+  Navigate to the &quot;Upload data&quot; tab above to submit your .xlsx file
+  for processing. Before you start, please make sure that your data meet the
+  <strong>formatting guidelines</strong> listed below.
+</p>
+<h2 id="formatting-guidelines">Formatting Guidelines</h2>
+<p>
+  The rank heat plot expects the uploaded data to be a spreadsheet in the .xlsx
+  format. The data for each treatment outcome should be included in its own
+  sheet, and the name of each sheet will be used to label that outcome in the
+  plot. The required format of each sheet, including required column names and
+  data types, will vary according to the type of data being uploaded and the
+  type of analysis being requested. Below is a list of required columns and
+  their corresponding data types.
+</p>
+<h4 id="for-all-analyses-">For all analyses:</h4>
+<ul>
+  <li><code>study_id</code>: a unique identifier for the study</li>
+</ul>
+<h3 id="for-data-in-arm-format-">For data in <strong>ARM</strong> format:</h3>
+<ul>
+  <li>
+    Always required:
+    <ul>
+      <li><code>t</code> <em>character</em>: Treatment identifier</li>
+    </ul>
+  </li>
+  <li>
+    Required for outcome type <strong>Binary</strong>:
+    <ul>
+      <li>
+        <code>n</code>: <em>integer</em> number of observations for individual
+        treatment arms, must be greater than zero
+      </li>
+      <li>
+        <code>r</code>: <em>integer</em> number of events for individual
+        treatment arms, must be greater than or equal to zero
+      </li>
+    </ul>
+  </li>
+  <li>
+    Required for outcome type <strong>Continuous</strong>
+    <ul>
+      <li>
+        <code>n</code>: <em>integer</em> number of observations for individual
+        treatment arms, must be greater than zero
+      </li>
+      <li>
+        <code>sd</code>: <em>number</em> the standard deviation for individual
+        treatment arms, must be greater than zero
+      </li>
+      <li>
+        <code>m</code>: <em>number</em> estimated means for individual treatment
+        arms
+      </li>
+    </ul>
+  </li>
+  <li>
+    Required for outcome type <strong>Time To Event</strong>
+    <ul>
+      <li>
+        <code>d</code>: <em>integer</em> number of events for individual
+        treatment arms, must be greater than or equal to zero
+      </li>
+      <li>
+        <code>time</code>: <em>number</em> information on person time at risk
+        for individual treatment arms, must be greater than zero
+      </li>
+    </ul>
+  </li>
+</ul>
+<h3 id="for-data-in-in-contrast-format">
+  For data in in <strong>Contrast</strong> format
+</h3>
+<ul>
+  <li>
+    <code>TE</code>: <em>number</em> estimated treatment effects for individual
+    treatment arms
+  </li>
+  <li>
+    <code>seTE</code>: <em>number</em> standard errors of estimated treatment
+    effect for individual treatment arms, must be greater than zero
+  </li>
+  <li>
+    <code>treat1</code>: <em>character</em> Label/Number for first treatment
+  </li>
+  <li>
+    <code>treat2</code>: <em>character</em> Label/Number for second treatment.
+  </li>
+</ul>
+<h2 id="citing-rank-heat-plot">Contact</h2>
+<p>
+  For bugs and feature requests, please open an issue on the Rank-Heat Plot <a href="https://github.com/averoniki/rankheatplot">GitHub page</a>. For other enquiries, please send an email to <a href="mailto:Areti-Angeliki.Veroniki@unityhealth.to">Areti-Angeliki.Veroniki@unityhealth.to</a>.
+</p>
+<h2 id="citing-rank-heat-plot">Citing Rank-Heat Plot</h2>
+<p>
+  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+  incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+  nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+  eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+  in culpa qui officia deserunt mollit anim id est laborum.
+</p>

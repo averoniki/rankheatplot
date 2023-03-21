@@ -1,0 +1,83 @@
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px !important;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.shiny-options-group {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap
+}
+
+.shiny-options-group .radio-inline {
+    display: flex;
+    padding: 0;
+    margin: 0;
+}
+
+.shiny-options-group .radio-inline span {
+  margin: 0px 4px;
+}
+
+.shiny-options-group .radio-inline input[type=radio] {
+  margin: 0;
+  position: relative;
+  display: flex;
+}
+
+
+.mt-5 {
+  margin-bottom: 5px;
+}
+
+.mt-5 {
+  margin-top: 5px;
+}
+
+.navbar {
+  padding: 15px
+}
+
+.navbar-header .navbar-brand {
+  font-size: 54px;
+  min-height: 50px;
+}
+
+.nav.navbar-nav {
+  font-size: 24px;
+}
+
+.tabbable .tab-heading {
+  margin: 10px;
+  padding: 10px;
+}
+
+/*
+  These controls are initially hidden, then managed by js.
+  As this evolves, they can probably be grouped.
+*/
+.dynamic-tabs-container,
+.restart-button,
+.submit-button,
+.plot-panel
+{
+  display: none;
+}

@@ -1,0 +1,24 @@
+FROM rocker/shiny:4.2.2
+
+# Install R packages
+RUN install2.r --error \
+    BiocManager \
+    circlize \
+    mvtnorm \
+    netmeta \
+    RColorBrewer \
+    readxl \
+    shiny \
+    shinybusy \
+    shinyjs \
+    sortable \
+    stringr \
+    rmarkdown \
+    writexl
+
+RUN R -e "BiocManager::install('ComplexHeatmap')"
+
+ENV PROJECT_ROOT=/srv/shiny-server/rankheatplot
+
+COPY ./src/rankheatplot/R /srv/shiny-server/rankheatplot
+

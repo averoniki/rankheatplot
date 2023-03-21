@@ -1,0 +1,30 @@
+version: "3.6"
+
+services:
+  shiny-server:
+    build:
+      dockerfile: Dockerfile.server
+      context: .
+    restart: always
+    networks:
+      - rankheat
+  nginx:
+    restart: always
+    image: nginx:1.20
+    environment:
+      - PRIVKEY_PATH
+      - FULLCHAIN_PATH
+    volumes:
+      - ./nginx:/etc/nginx
+      - ${FULLCHAIN_PATH}:/etc/nginx/ssl/certs/fullchain.pem:ro
+      - ${PRIVKEY_PATH}:/etc/nginx/ssl/certs/privkey.pem:ro
+    networks:
+      - rankheat
+    depends_on:
+      - shiny-server
+    ports:
+      - 80:80
+      - 443:443
+
+networks:
+  rankheat:
