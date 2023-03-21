@@ -1,5 +1,6 @@
 shiny::shinyUI(shiny::div(
   shiny::navbarPage(
+    id = "navtabs",
     shiny::tags$head(
       shiny::tags$link(rel = "stylesheet", type = "text/css", href = "app.css"),
       shiny::tags$link(rel = "shortcut icon", href = "favicon.ico")
@@ -65,6 +66,7 @@ shiny::shinyUI(shiny::div(
                     ),),
     shiny::tabPanel(
       title = "View Plot",
+      value="viewPlot",
       shiny::fluidRow(
         class = "plot-panel",
         shiny::column(3,

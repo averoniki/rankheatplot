@@ -137,12 +137,12 @@ rhp.prepData <- function(df, format = "percentage") {
   # drop rows that don't have a label
   df <- df[!is.na(df[, 1]),]
   # save these in case they get dropped in
-  colns <- names(df)[0:-1]
+  #colns <- names(df)[0:-1]
   # set first column as row names
   rns <- df[, 1]
 
   # drop first column (if only has one col, will be converted to vec, so cast and set names...)
-  df <- as.data.frame(df[,-c(1)])
+  df <- as.data.frame(df[,-c(1), drop=F])
 
   if (format == "percentage") {
     df <- as.data.frame(sapply(df, function(x)
@@ -151,7 +151,7 @@ rhp.prepData <- function(df, format = "percentage") {
     df <- as.data.frame(sapply(df, function(x)
       (1 - x) / nrow(df)))
   }
-  colnames(df) <- colns
+  #colnames(df) <- colns
   rownames(df) <- rns
   df
 }

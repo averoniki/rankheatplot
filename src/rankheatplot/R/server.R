@@ -2,7 +2,7 @@ env = Sys.getenv()
 projectRoot = ifelse(!is.na(env['PROJECT_ROOT']), env['PROJECT_ROOT'], getwd())
 source(paste0(projectRoot, .Platform$file.sep, 'rankHeatCircos.R'))
 
-shiny::shinyServer(function(input, output) {
+shiny::shinyServer(function(input, output, session) {
   output$about <- renderUI({
     includeHTML(path = paste0(projectRoot, .Platform$file.sep, "about.html"))
   })
@@ -209,8 +209,7 @@ shiny::shinyServer(function(input, output) {
         shinybusy::show_modal_spinner()
         formatted <-
           getFormattedData(options, sheetList(), input)
-
-        formatted <- formatted[input$treatmentList, ]
+        formatted <- formatted[input$treatmentList,,drop=F]
 
         shinybusy::remove_modal_spinner()
         # check if we got an error list back
@@ -256,6 +255,7 @@ shiny::shinyServer(function(input, output) {
       output$dataTable <-
         renderTable(formattedValues(), rownames = T)
       showDisplayControls()
+      updateTabsetPanel(session, inputId = "navtabs", selected="viewPlot")
     } else {
       hideDisplayControls()
     }
