@@ -27,7 +27,6 @@ rhp.rankheatplotCircos <-
            cexLabel = .65,
            cexValue = .75,
            cexSector = 1) {
-    chartData <- as.data.frame(chartData) # will collapse to vector if only one column
     rns <- rownames(chartData)
     # add explicit row for outcomes
     chartData[nrow(chartData) + 1, ] <- colnames(chartData)
@@ -72,56 +71,56 @@ rhp.rankheatplotCircos <-
 
     circlize::circos.track(
       track.index = circlize::get.current.track.index(),
-      bg.border = NA,
-      # this will create graphical elements immediately after creation of cell
-      panel.fun = function(x, y) {
-        n = ncol(chartData)
+       bg.border = NA,
+       #this will create graphical elements immediately after creation of cell
+       panel.fun = function(x, y) {
+         n = ncol(chartData)
 
-        if (circlize::get.cell.meta.data("sector.index") != "Outcome") {
-          circlize::circos.text(
-            rep(circlize::CELL_META$cell.xlim[2] / 2, n),
-            1:n - 0.5,
-            # get data by rowname
-            formatData(as.vector(t(
-              rev(chartData[circlize::get.cell.meta.data("sector.index"), ])
-            ))),
-            cex = cexValue,
-            adj = c(.5, .5),
-            facing = "inside",
-            niceFacing = T
-          )
-        } else {
-          # facing='bending' requires a loop rather than vector args
-          lbls = rev(names(chartData))
-          for (i in 1:n) {
-            circlize::circos.text(
-              circlize::CELL_META$cell.xlim[2] / 2 ,
-              i - .5,
-              lbls[i],
-              cex = cexLabel,
-              adj = c(.5, .5),
-              facing = "bending",
-              niceFacing = T
-            )
-          }
-        }
+         if (circlize::get.cell.meta.data("sector.index") != "Outcome") {
+           circlize::circos.text(
+             rep(circlize::CELL_META$cell.xlim[2] / 2, n),
+             1:n - 0.5,
+             # get data by rowname
+             formatData(as.vector(t(
+               rev(chartData[circlize::get.cell.meta.data("sector.index"), ])
+             ))),
+             cex = cexValue,
+             adj = c(.5, .5),
+             facing = "inside",
+             niceFacing = T
+           )
+         } else {
+           # facing='bending' requires a loop rather than vector args
+           lbls = rev(names(chartData))
+           for (i in 1:n) {
+             circlize::circos.text(
+               circlize::CELL_META$cell.xlim[2] / 2 ,
+               i - .5,
+               lbls[i],
+               cex = cexLabel,
+               adj = c(.5, .5),
+               facing = "bending",
+               niceFacing = T
+             )
+           }
+         }
       },
     )
 
     # we'll roll our own sector labels so we have control over cex
-    for (nm in rownames(chartData)) {
-      circlize::set.current.cell(sector.index = nm, track.index = 1)
+     for (nm in rownames(chartData)) {
+       circlize::set.current.cell(sector.index = nm, track.index = 1)
 
-      circlize::circos.text(
-        circlize::CELL_META$xcenter,
-        circlize::CELL_META$ylim[2] + 0.1,
-        nm,
-        facing = "bending.inside",
-        adj = c(0.5, 0),
-        cex=cexSector
-      )
+       circlize::circos.text(
+         circlize::CELL_META$xcenter,
+         circlize::CELL_META$ylim[2] + 0.1,
+         nm,
+         facing = "bending.inside",
+         adj = c(0.5, 0),
+         cex=cexSector
+       )
 
-    }
+     }
 
     lgd = ComplexHeatmap::Legend(col_fun = colFun, direction = "horizontal")
     ComplexHeatmap::draw(

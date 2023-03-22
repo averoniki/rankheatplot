@@ -7,6 +7,10 @@ body {
   margin-bottom: 60px !important;
 }
 
+#plotShot img {
+  width: 100%;
+}
+
 .footer {
     position: absolute;
     bottom: 0;

@@ -12,7 +12,7 @@ shiny::shinyServer(function(input, output, session) {
       src = paste0(
         projectRoot,
         .Platform$file.sep,
-        "www" ,
+        "www",
         .Platform$file.sep,
         "plot-shot.png"
       )

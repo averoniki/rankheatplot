@@ -12,7 +12,7 @@ shiny::shinyUI(shiny::div(
                       shiny::column(4,
                                     shiny::fluidRow(
                                       shiny::column(12, shiny::h1("Rank-Heat Plot")),
-                                      shiny::column(12, shiny::imageOutput("plotShot"))
+                                      shiny::column(12, shiny::imageOutput("plotShot", height = NULL))
                                     )),
                       shiny::column(8, shiny::fluidRow(shiny::htmlOutput("about")))
                     )),
