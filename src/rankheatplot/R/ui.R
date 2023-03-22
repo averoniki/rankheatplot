@@ -20,8 +20,14 @@ shiny::shinyUI(shiny::div(
                     shiny::fluidRow(
                       shiny::column(
                         4,
-                        shiny::fluidRow(shiny::column(12,
-                                                      uiOutput('file_input'))),
+                        shiny::fluidRow(
+                          shiny::column(12,
+                                        uiOutput('file_input')),
+                          shiny::column(
+                            12,
+                            shiny::downloadButton("exampleFileDownload", label = "Download Example Dataset")
+                          )
+                        ),
                         shiny::fluidRow(
                           shiny::column(
                             class = "mt-5 submit-buttons",
@@ -39,34 +45,32 @@ shiny::shinyUI(shiny::div(
                             shiny::tags$ul(shiny::uiOutput("sheetValidationMsg"))
                           )
                         )),
-                        shiny::fluidRow(class="treatment-list",shiny::column(
+                        shiny::fluidRow(class = "treatment-list", shiny::column(
                           9, class = "mt-5 mb-5", shiny::uiOutput('treatmentList')
                         ))
                       ),
-                      shiny::column(
-                        8,
-                        class = "dynamic-tabs-container",
-                        shiny::fluidRow(
-                          shiny::column(12,
-                                        shiny::div(
-                                          shiny::tabsetPanel(
-                                            id = "dynamicTabs",
-                                            header = shiny::p(
-                                              class = "tab-heading",
-                                              em("Use the controls below to configure the analysis for this sheet.")
-                                            )
-                                          )
-                                        )),
-                          shiny::fluidRow(shiny::column(
-                            12,
-                            actionLink(inputId = "useAll", label = "Apply these settings to all sheets")
-                          ))
-                        ),
-                      )
+                      shiny::column(8,
+                                    class = "dynamic-tabs-container",
+                                    shiny::fluidRow(
+                                      shiny::column(12,
+                                                    shiny::div(
+                                                      shiny::tabsetPanel(
+                                                        id = "dynamicTabs",
+                                                        header = shiny::p(
+                                                          class = "tab-heading",
+                                                          em("Use the controls below to configure the analysis for this sheet.")
+                                                        )
+                                                      )
+                                                    )),
+                                      shiny::fluidRow(shiny::column(
+                                        12,
+                                        actionLink(inputId = "useAll", label = "Apply these settings to all sheets")
+                                      ))
+                                    ), )
                     ),),
     shiny::tabPanel(
       title = "View Plot",
-      value="viewPlot",
+      value = "viewPlot",
       shiny::fluidRow(
         class = "plot-panel",
         shiny::column(3,

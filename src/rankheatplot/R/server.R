@@ -1,22 +1,16 @@
 env = Sys.getenv()
 projectRoot = ifelse(!is.na(env['PROJECT_ROOT']), env['PROJECT_ROOT'], getwd())
-source(paste0(projectRoot, .Platform$file.sep, 'rankHeatCircos.R'))
+source(file.path(projectRoot, 'rankHeatCircos.R'))
 
 shiny::shinyServer(function(input, output, session) {
   output$about <- renderUI({
-    includeHTML(path = paste0(projectRoot, .Platform$file.sep, "about.html"))
+    includeHTML(path = file.path(projectRoot, "about.html"))
   })
 
   output$plotShot <- renderImage({
-    list(
-      src = paste0(
-        projectRoot,
-        .Platform$file.sep,
-        "www",
-        .Platform$file.sep,
-        "plot-shot.png"
-      )
-    )
+    list(src = file.path(projectRoot,
+                         "www",
+                         "plot-shot.png"))
   }, deleteFile = F)
 
   # define this server-side so we can have a dependency on startOver button
@@ -38,6 +32,18 @@ shiny::shinyServer(function(input, output, session) {
     )
   })
 
+  output$exampleFileDownload <- downloadHandler(
+    filename = "AD-data.xlsx",
+    content = function(file) {
+      print(file.path(projectRoot,
+                      "www",
+                      "Safety AD Data RTC.xlsx"))
+      file.copy(file.path(projectRoot,
+                          "www",
+                          "safety-ad-data-rtc.xlsx"),
+                file)
+    }
+  )
 
   # we'll make the user explicitly start over
   # so we can cleanly remove tabs w/o timing issues from relying on sheetList changes
@@ -209,7 +215,7 @@ shiny::shinyServer(function(input, output, session) {
         shinybusy::show_modal_spinner()
         formatted <-
           getFormattedData(options, sheetList(), input)
-        formatted <- formatted[input$treatmentList,,drop=F]
+        formatted <- formatted[input$treatmentList, , drop = F]
 
         shinybusy::remove_modal_spinner()
         # check if we got an error list back
@@ -255,7 +261,7 @@ shiny::shinyServer(function(input, output, session) {
       output$dataTable <-
         renderTable(formattedValues(), rownames = T)
       showDisplayControls()
-      updateTabsetPanel(session, inputId = "navtabs", selected="viewPlot")
+      updateTabsetPanel(session, inputId = "navtabs", selected = "viewPlot")
     } else {
       hideDisplayControls()
     }
