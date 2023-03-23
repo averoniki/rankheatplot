@@ -35,9 +35,6 @@ shiny::shinyServer(function(input, output, session) {
   output$exampleFileDownload <- downloadHandler(
     filename = "AD-data.xlsx",
     content = function(file) {
-      print(file.path(projectRoot,
-                      "www",
-                      "Safety AD Data RTC.xlsx"))
       file.copy(file.path(projectRoot,
                           "www",
                           "safety-ad-data-rtc.xlsx"),
@@ -80,90 +77,97 @@ shiny::shinyServer(function(input, output, session) {
                         text = "Drag the labels below to order the treatments in the plot")
   }), sheetList(), ignoreNULL = T)
 
-  output$foo <- bindEvent(shiny::renderUI({
-    print("bar")
-    renderText("bar")
-  }), sheetList())
-
   # BUILDING THE FORM
   # This will create the UI with an identical tab for each uploaded sheet
   observeEvent(sheetList(), {
+    # https://community.rstudio.com/t/how-do-i-use-for-loop-in-rendering-outputs/35761/2
+    lapply(names(sheetList()), function(name) {
+      output[[paste0(name, 'Table')]] <-
+        renderDataTable(sheetList()[[name]], options = list(pageLength = 10))
+    })
+
     for (name in names(sheetList())) {
-      shiny::prependTab(inputId = "dynamicTabs",
-                        shiny::tabPanel(
-                          title = name,
-                          class = "mt-5",
-                          fluidRow(
-                            column(
-                              4,
-                              radioButtons(
-                                inputId = paste0(name, "_option_dataFormat"),
-                                inline = T,
-                                label = "Select Data Format",
-                                choiceNames = c("Arm Level", "Contrast Level"),
-                                choiceValues = c("arm", "contrast"),
-                                selected = character(0)
-                              ),
-                              radioButtons(
-                                inputId = paste0(name, "_option_outcomeType"),
-                                inline = T,
-                                label = "Select Outcome Type",
-                                choiceNames = c("Binary", "Continuous", "Time to Event", "Survival"),
-                                choiceValues = c("binary", "continuous", "tte", "survival"),
-                                selected = character(0)
-                              ),
-                            ),
-                            column(
-                              4,
-                              radioButtons(
-                                inputId = paste0(name, "_option_sm"),
-                                inline = T,
-                                label = "Select Effect Size",
-                                choiceNames = c("OR", "RR", "RD", "MD", "SMD", "ROM", "IRR", "HR"),
-                                choiceValues = c("or", "rr", "rd", "md", "smd", "rom", "irr", "hr"),
-                                selected = character(0)
-                              ),
-                              radioButtons(
-                                inputId = paste0(name, "_option_smallValues"),
-                                inline = T,
-                                label = "Select Small Values",
-                                choiceNames = c("Good", "Bad"),
-                                choiceValues = c("good", "bad"),
-                                selected = character(0)
-                              ),
-                            ),
-                            column(
-                              4,
-                              radioButtons(
-                                inputId = paste0(name, "_option_model"),
-                                inline = T,
-                                label = "Select Model",
-                                choiceNames = c("Common effect", "Random effects"),
-                                choiceValues = c("common", "random"),
-                                selected = character(0)
-                              ),
-                              radioButtons(
-                                inputId = paste0(name, "_option_methodTau"),
-                                inline = T,
-                                label = "Select Method.tau",
-                                choiceNames = c("REML", "ML", "DL"),
-                                choiceValues = c("reml", "ml", "dl"),
-                                selected = character(0)
-                              ),
-                              radioButtons(
-                                inputId = paste0(name, "_option_method"),
-                                inline = T,
-                                label = "Select Rank Statistic",
-                                choiceNames = c("SUCRA", "P-Score"),
-                                choiceValues = c("SUCRA", "P-score"),
-                                selected = character(0)
-                                ,
-                              )
-                            )
-                          )
-                        ))
+      shiny::prependTab(
+        inputId = "dynamicTabs",
+        shiny::tabPanel(
+          title = name,
+          class = "mt-5",
+          fluidRow(
+            column(
+              4,
+              radioButtons(
+                inputId = paste0(name, "_option_dataFormat"),
+                inline = T,
+                label = "Select Data Format",
+                choiceNames = c("Arm Level", "Contrast Level"),
+                choiceValues = c("arm", "contrast"),
+                selected = character(0)
+              ),
+              radioButtons(
+                inputId = paste0(name, "_option_outcomeType"),
+                inline = T,
+                label = "Select Outcome Type",
+                choiceNames = c("Binary", "Continuous", "Time to Event", "Survival"),
+                choiceValues = c("binary", "continuous", "tte", "survival"),
+                selected = character(0)
+              ),
+            ),
+            column(
+              4,
+              radioButtons(
+                inputId = paste0(name, "_option_sm"),
+                inline = T,
+                label = "Select Effect Size",
+                choiceNames = c("OR", "RR", "RD", "MD", "SMD", "ROM", "IRR", "HR"),
+                choiceValues = c("or", "rr", "rd", "md", "smd", "rom", "irr", "hr"),
+                selected = character(0)
+              ),
+              radioButtons(
+                inputId = paste0(name, "_option_smallValues"),
+                inline = T,
+                label = "Select Small Values",
+                choiceNames = c("Good", "Bad"),
+                choiceValues = c("good", "bad"),
+                selected = character(0)
+              ),
+            ),
+            column(
+              4,
+              radioButtons(
+                inputId = paste0(name, "_option_model"),
+                inline = T,
+                label = "Select Model",
+                choiceNames = c("Common effect", "Random effects"),
+                choiceValues = c("common", "random"),
+                selected = character(0)
+              ),
+              radioButtons(
+                inputId = paste0(name, "_option_methodTau"),
+                inline = T,
+                label = "Select Method.tau",
+                choiceNames = c("REML", "ML", "DL"),
+                choiceValues = c("reml", "ml", "dl"),
+                selected = character(0)
+              ),
+              radioButtons(
+                inputId = paste0(name, "_option_method"),
+                inline = T,
+                label = "Select Rank Statistic",
+                choiceNames = c("SUCRA", "P-Score"),
+                choiceValues = c("SUCRA", "P-score"),
+                selected = character(0)
+              )
+            )
+          ),
+          shiny::fluidRow(shiny::column(
+            12,
+            shiny::dataTableOutput(outputId = paste0(name, 'Table'))
+          ),)
+        )
+      )
     }
     updateTabsetPanel(inputId = "dynamicTabs", selected = rev(names(sheetList()))[1])
+
   })
 
   # Observe *all* changes to input and update visibility/choices
@@ -183,11 +187,11 @@ shiny::shinyServer(function(input, output, session) {
   })
 
   observeEvent(input$useAll, {
-    options <- groupValues(input, names(sheetList()))
+    options <- groupValues(input, names(isolate(sheetList())))
 
     selected = options[[input$dynamicTabs]]
 
-    for (sheetName in names(sheetList())) {
+    for (sheetName in names(isolate(sheetList()))) {
       for (option in names(selected)) {
         updateRadioButtons(
           inputId = paste0(sheetName, "_option_", option),

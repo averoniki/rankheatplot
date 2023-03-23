@@ -29,7 +29,8 @@ shiny::shinyUI(shiny::div(
                           ),
                           shiny::column(
                             12,
-                            shiny::p(class="citation",
+                            shiny::p(
+                              class = "citation",
                               "(Tricco, A.C., Ashoor, H.M., Soobiah, C., Rios, P., Veroniki, A.A., Hamid, J.S., Ivory, J.D., Khan, P.A., Yazdi, F., Ghassemi, M., Blondal, E., Ho, J.M., Ng, C.H., Hemmelgarn, B., Majumdar, S.R., Perrier, L. and Straus, S.E. (2018), Comparative Effectiveness and Safety of Cognitive Enhancers for Treating Alzheimer's Disease: Systematic Review and Network Metaanalysis. J Am Geriatr Soc, 66: 170-178. https://doi.org/10.1111/jgs.15069)"
                             )
                           )
@@ -57,22 +58,19 @@ shiny::shinyUI(shiny::div(
                       ),
                       shiny::column(8,
                                     class = "dynamic-tabs-container",
-                                    shiny::fluidRow(
-                                      shiny::column(12,
-                                                    shiny::div(
-                                                      shiny::tabsetPanel(
-                                                        id = "dynamicTabs",
-                                                        header = shiny::p(
-                                                          class = "tab-heading",
-                                                          em("Use the controls below to configure the analysis for this sheet.")
-                                                        )
-                                                      )
-                                                    )),
-                                      shiny::fluidRow(shiny::column(
-                                        12,
-                                        actionLink(inputId = "useAll", label = "Apply these settings to all sheets")
-                                      ))
-                                    ),)
+                                    shiny::fluidRow(shiny::column(
+                                      12,
+                                      shiny::div(
+                                        shiny::tabsetPanel(
+                                          id = "dynamicTabs",
+                                          header = shiny::div(shiny::p(
+                                            class = "tab-heading",
+                                            em("Use the controls below to configure the analysis for this sheet.")
+                                          ),
+                                          actionLink(inputId = "useAll", label = "Apply these settings to all sheets"),
+                                        )
+                                      )
+                                    ), ),))
                     ), ),
     shiny::tabPanel(
       title = "View Plot",
