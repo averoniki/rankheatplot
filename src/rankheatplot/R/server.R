@@ -277,7 +277,7 @@ setLoadedUI <- function() {
   shinyjs::disable('userData')
   shinyjs::show('startOver')
   shinyjs::show(selector = ".dynamic-tabs-container")
-  shinyjs::show('submit')
+  shinyjs::show(selector = '.submit-buttons')
   shinyjs::show('treatmentList')
   shinyjs::disable('submit')
 }
@@ -286,7 +286,7 @@ setLoadedUI <- function() {
 unsetLoadedUI <- function() {
   shinyjs::enable('userData')
   shinyjs::hide('startOver')
-  shinyjs::hide('submit')
+  shinyjs::hide(selector = '.submit-buttons')
   shinyjs::hide("treatmentList")
   shinyjs::hide(selector = ".dynamic-tabs-container")
 }

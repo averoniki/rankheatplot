@@ -89,7 +89,7 @@ body {
 */
 .dynamic-tabs-container,
 .restart-button,
-.submit-button,
+.submit-buttons,
 .plot-panel
 {
   display: none;

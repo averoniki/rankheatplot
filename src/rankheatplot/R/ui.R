@@ -39,9 +39,13 @@ shiny::shinyUI(
                 )
               )
             ),
-            shiny::fluidRow(
+            shiny::fluidRow(class="submit-buttons",
               shiny::column(
-                class = "mt-5 submit-buttons",
+                12,
+                p(class="small", strong("All options on the right must be selected for all sheets before submitting."))
+              ),
+              shiny::column(
+                class = "mt-5",
                 12,
                 shiny::actionButton("submit", "Submit", class = "submit-button"),
                 shiny::actionButton("startOver", "Start Over", class = "restart-button")
