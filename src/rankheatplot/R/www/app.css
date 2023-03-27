@@ -78,6 +78,11 @@ body {
   padding: 10px;
 }
 
+.viewer-data-table-row {
+  display: flex;
+  justify-content: center;
+}
+
 /*
   These controls are initially hidden, then managed by js.
   As this evolves, they can probably be grouped.
