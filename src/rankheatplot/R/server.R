@@ -252,7 +252,7 @@ shiny::shinyServer(function(input, output, session) {
           "rankheat.png"
         },
         content = function(file) {
-          png(file) # open the png device
+          png(file, width=1000, height=1000, res=100) # open the png device
           rhp.rankheatplotCircos(
             formattedValues(),
             cexLabel = input$cexLabel,
