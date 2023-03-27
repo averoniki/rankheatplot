@@ -55,9 +55,9 @@ shiny::shinyUI(
                 )
               )
             ),
-            shiny::fluidRow(class = "treatment-list", 
+            shiny::fluidRow(class = "treatment-list",
               shiny::column(
-                9, class = "mt-5 mb-5", 
+                9, class = "mt-5 mb-5",
                 shiny::uiOutput('treatmentList')
               )
             )
@@ -73,10 +73,10 @@ shiny::shinyUI(
                     header = shiny::div(
                       shiny::p(
                         class = "tab-heading",
-                        em("Use the controls below to configure the analysis for this sheet.")
+                        em(strong("Use the controls below to configure the analysis for this sheet."))
                       ),
                       actionLink(inputId = "useAll", label = "Apply these settings to all sheets"),
-                    ) 
+                    )
                   )
                 )
               )
@@ -156,4 +156,4 @@ shiny::shinyUI(
       )
     )
   ) # end outer div
-)       
+)
