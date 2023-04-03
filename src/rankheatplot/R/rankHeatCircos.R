@@ -71,39 +71,40 @@ rhp.rankheatplotCircos <-
 
     circlize::circos.track(
       track.index = circlize::get.current.track.index(),
-       bg.border = NA,
-       #this will create graphical elements immediately after creation of cell
-       panel.fun = function(x, y) {
-         n = ncol(chartData)
+      bg.border = NA,
+      track.height = 0.05,
+     #this will create graphical elements immediately after creation of cell
+      panel.fun = function(x, y) {
+        n = ncol(chartData)
 
-         if (circlize::get.cell.meta.data("sector.index") != "Outcome") {
+        if (circlize::get.cell.meta.data("sector.index") != "Outcome") {
+          circlize::circos.text(
+           rep(circlize::CELL_META$cell.xlim[2] / 2, n),
+           1:n - 0.5,
+           # get data by rowname
+           formatData(as.vector(t(
+             rev(chartData[circlize::get.cell.meta.data("sector.index"), ])
+           ))),
+           cex = cexValue,
+           adj = c(.5, .5),
+           facing = "inside",
+           niceFacing = T
+         )
+       } else {
+         # facing='bending' requires a loop rather than vector args
+         lbls = rev(names(chartData))
+         for (i in 1:n) {
            circlize::circos.text(
-             rep(circlize::CELL_META$cell.xlim[2] / 2, n),
-             1:n - 0.5,
-             # get data by rowname
-             formatData(as.vector(t(
-               rev(chartData[circlize::get.cell.meta.data("sector.index"), ])
-             ))),
-             cex = cexValue,
+             circlize::CELL_META$cell.xlim[2] / 2 ,
+             i - .5,
+             lbls[i],
+             cex = cexLabel,
              adj = c(.5, .5),
-             facing = "inside",
+             facing = "bending",
              niceFacing = T
            )
-         } else {
-           # facing='bending' requires a loop rather than vector args
-           lbls = rev(names(chartData))
-           for (i in 1:n) {
-             circlize::circos.text(
-               circlize::CELL_META$cell.xlim[2] / 2 ,
-               i - .5,
-               lbls[i],
-               cex = cexLabel,
-               adj = c(.5, .5),
-               facing = "bending",
-               niceFacing = T
-             )
-           }
          }
+       }
       },
     )
 
@@ -115,7 +116,8 @@ rhp.rankheatplotCircos <-
          circlize::CELL_META$xcenter,
          circlize::CELL_META$ylim[2] + 0.1,
          nm,
-         facing = "bending.inside",
+         facing = "bending",
+         niceFacing=T,
          adj = c(0.5, 0),
          cex=cexSector
        )
