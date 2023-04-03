@@ -10,7 +10,7 @@ shiny::shinyUI(
       shinyjs::useShinyjs(),
       shiny::tabPanel(title = "Get Started",
         shiny::fluidRow(
-          shiny::column(4,
+          shiny::column(3,
             shiny::fluidRow(
               shiny::column(12, shiny::h1("Rank-Heat Plot")),
               shiny::column(12, shiny::imageOutput("plotShot", height = NULL))
