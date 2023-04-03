@@ -79,7 +79,7 @@ shiny::shinyUI(
                         class = "tab-heading",
                         em(strong("Use the controls below to configure the analysis for this sheet."))
                       ),
-                      actionLink(inputId = "useAll", label = "Apply these settings to all sheets"),
+                      shiny::h4(actionLink(inputId = "useAll", label = "Apply these settings to all sheets")),
                     )
                   )
                 )

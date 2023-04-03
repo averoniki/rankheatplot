@@ -325,8 +325,12 @@ getTreatmentList <- function(sheetList) {
   # sheet may not be validated yet, so can't assume `t` column exists
   ret <- c()
   for (i in 1:length(sheetList)) {
-    if ('t' %in% names(sheetList[[i]])) {
+    colns <- names(sheetList[[i]])
+    print(colns)
+    if ('t' %in% colns) {
       ret <- c(ret, sheetList[[i]][['t']])
+    } else if ('treat1' %in% colns & 'treat2' %in% colns){
+      ret <- c(ret, c(sheetList[[i]][['treat1']], sheetList[[i]][['treat2']]))
     }
   }
 
