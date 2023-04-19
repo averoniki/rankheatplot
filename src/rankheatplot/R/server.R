@@ -211,23 +211,22 @@ shiny::shinyServer(function(input, output, session) {
       createErrorDisplayList(errorList = invalid, output = output)
       NULL
     }  else {
-      output$sheetValidationHeading <- NULL
-      output$sheetValidationMsg <-
-        renderUI(NULL)
 
       tryCatch({
         shinybusy::show_modal_spinner()
         formatted <-
-          getFormattedData(options, sheetList(), input)
-        formatted <- formatted[input$treatmentList, , drop = F]
+          getFormattedData(options, sheetList())
 
         shinybusy::remove_modal_spinner()
         # check if we got an error list back
         if (!is.data.frame(formatted)) {
-          createErrorDisplayList(formatted, ouput)
+          createErrorDisplayList(formatted, output)
           NULL
         } else {
-          formatted
+          output$sheetValidationHeading <- NULL
+          output$sheetValidationMsg <-
+            renderUI(NULL)
+          formatted[input$treatmentList, , drop = F]
         }
       }, error = {
         shinybusy::remove_modal_spinner()
@@ -326,7 +325,6 @@ getTreatmentList <- function(sheetList) {
   ret <- c()
   for (i in 1:length(sheetList)) {
     colns <- names(sheetList[[i]])
-    print(colns)
     if ('t' %in% colns) {
       ret <- c(ret, sheetList[[i]][['t']])
     } else if ('treat1' %in% colns & 'treat2' %in% colns){
@@ -612,44 +610,43 @@ extractSheets <- function(pth) {
 #' @param option list, a list of arguments selected in the ui
 #' @param sheet df, a dataframe derived from a sheet of the uploaded excel book
 armToContrast <- function(sheet, options) {
-  # set globally require args
-  args <-
-    list(studlab = sheet[['study_id']], treat = sheet[['t']])
 
-  if (options[['outcomeType']] == "binary") {
-    args$n <- sheet[['n']]
-    args$event <- sheet[['r']]
-    args$data <- sheet
-    args$sm <- options$sm
-  }
-  if (options[['outcomeType']] == "continuous") {
-    args$n <- sheet[['n']]
-    args$m <- sheet[['m']]
-    args$sd <- sheet[['sd']]
-  }
-  if (options[['outcomeType']] == "tte") {
-    args$event <- sheet[['d']]
-    args$time <- sheet[['time']]
-    args$data <- sheet
-    args$sm <- options$sm
-  }
+  if(options$dataFormat == 'contrast'){
+    sheet
+  } else {
+    # set globally required args
+    args <-
+      list(studlab = sheet[['study_id']], treat = sheet[['t']])
 
-  do.call(netmeta::pairwise, args = args, quote = F)
+    if (options[['outcomeType']] == "binary") {
+      args$n <- sheet[['n']]
+      args$event <- sheet[['r']]
+      args$data <- sheet
+      args$sm <- options$sm
+    }
+    if (options[['outcomeType']] == "continuous") {
+      args$n <- sheet[['n']]
+      args$m <- sheet[['m']]
+      args$sd <- sheet[['sd']]
+    }
+    if (options[['outcomeType']] == "tte") {
+      args$event <- sheet[['d']]
+      args$time <- sheet[['time']]
+      args$data <- sheet
+      args$sm <- options$sm
+    }
 
+    do.call(netmeta::pairwise, args = args, quote = F)
+  }
 }
 
 
 #' Run netmeta function with user values converting arm to contrast
 #' @param options list, user-provided arguments to pass to netmeta
-#' @param sheet dataframe, data from a user sheet
+#' @param transformed dataframe, user data that has (optionally) been transformed to
+#'   a shape compatible with netmeta
 #' @return dataframe, dataframe that can be passed to rank heat plot function
-getNetmeta <- function(options, sheet) {
-  if (options$dataFormat == "arm") {
-    transformed <- armToContrast(sheet, options)
-  } else {
-    transformed <- sheet
-  }
-
+getNetmeta <- function(options, transformed) {
   netmetaArgs <-
     list(
       data = transformed,
@@ -697,13 +694,37 @@ getRanks <- function(options, netmetaRes, sheetName) {
 #' format data to be passed to plotting function
 #' @param options list, list keyed by sheet of arguments to pass to functions
 #' @param sheets list, list keyed by sheet name of user-supplied dataframes
-#' @param input reactiveValues, the list of inputs, which will contain formatting values
 #' @return dataframe, dataframe that can be passed to rank heat plot function if successful,
-#' else a list of fields that failed the connectivity test
-getFormattedData <- function(options, sheets, input) {
-  errors = list()
+#' else a list of errors
+getFormattedData <- function(options, sheets) {
+  errors <- list()
   # before passing to mapply, we have to make sure lists are in the same order
   opts <- options[names(sheets)]
+  transformed <- mapply(armToContrast, sheets, opts, USE.NAMES = T, SIMPLIFY = F)
+
+  for(name in names(transformed)){
+    if(!all(!is.na(transformed[[name]][['seTE']]))){
+      errors[[name]] <- paste(name, " has NAs in computed seTE, please check your data!")
+    } else if(!all(!is.na(transformed[[name]][['TE']]))){
+      errors[[name]] <- paste(name, " has NAs in computed TE, please check your data!")
+    }
+  }
+
+  if(length(errors)){
+    errors
+  } else {
+    computeNetMeta(opts, transformed)
+  }
+}
+
+#' format data to be passed to plotting function
+#' @param options list, list keyed by sheet of arguments to pass to functions
+#' @param sheets list, list keyed by sheet name of user-supplied dataframes
+#' @return dataframe, dataframe that can be passed to rank heat plot function if successful,
+#' else a list of fields that failed the connectivity test
+computeNetMeta <- function(opts, sheets){
+
+  errors <- list()
   netmetaRes <-
     mapply(getNetmeta,
            opts,
@@ -741,7 +762,6 @@ getFormattedData <- function(options, sheets, input) {
 
     rhp.prepData(allResults)
   }
-
 }
 
 #' @param ranking named vector, typically retrieved from netrank() result as
