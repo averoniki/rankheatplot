@@ -149,7 +149,31 @@ shiny::shinyUI(
             ) # end outer fluid row in rhs column
           ) # end rhs column
         ) # end outer plot page fluid row
-      ) # end outer plot page tab panel
+      ), # end outer plot page tab panel
+      shiny::tabPanel(
+        title = "Tutorial and FAQ",
+        value = "tutorial_faq",
+        shiny::fluidRow(
+          class = "tutoria-faq-panel",
+          shiny::column(12,
+            shiny::h1("Video Tutorial"),
+            shiny::p("The video below provides a step-by-step demonstration of
+                     how to use the Rank-Heat Plot with example data."),
+            shiny::tags$iframe(width="642",
+                               height="300",
+                               src="https://www.youtube.com/embed/uKVedOjznYc",
+                               title="Rankheatplot",
+                               frameborder="0",
+                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+                               allowfullscreen="allowfullscreen"
+                              )
+          ),
+          shiny::column(12,
+            shiny::h1("FAQ"),
+            shiny::p("Coming soon...")
+          )
+        ) # end fluid row
+      ) # end FAQ tab panel
     ), # end navbar page
     shiny::div(
       class = "footer",
