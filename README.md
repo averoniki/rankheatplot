@@ -1,16 +1,14 @@
-# Rankheatplot
+# Rank-Heat Plot
 
-The rank-heat plot is an efficient way to present the results of ranking statistics, particularly when a large amount of data is available, and it is targeted to users from various backgrounds.
+[https://rankheatplot.com/rankheatplot/](https://rankheatplot.com)
+
+The rank-heat plot is an [R Shiny](https://shiny.rstudio.com/) application that provides an efficient way to present the results of ranking statistics, particularly when a large amount of data is available, and is targeted to users from various backgrounds.
 
 # Getting Started
 
-1. Install required libraries:
-   `install.packages("readxl", "fields", "RColorBrewer", "circlize")`
+The fasted way to get started using the Rank-Heat Plot locally is with [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/install/). To bring up the application, navigate to the root directory of the project and run `docker-compose up`. This command will build the application image with all required dependencies and launch an instance of RStudio that you may access by navigating to `localhost:8852` in your browser. You can then open the file `src/rankheatplot/R/server.R` and click the "Run App" button in the upper right hand side of the file pane.
 
-2. Run the rankheatPlotComp.R script:
-   `source("path/to/the/script/fun/rankheatPlotComp.R")`
-
-3. Use the `examples.R` to load the data and generate rankheatplots:
+Alternately, you can run the app on your host machine by cloning the repo and installing the required dependencies (see the `Imports` section [here](./src/rankheatplot/DESCRIPTION)). Note also that you will need to install ComplexHeatMap via BiocManager (`BiocManager::install('ComplexHeatmap')`).
 
 # Authors
 
