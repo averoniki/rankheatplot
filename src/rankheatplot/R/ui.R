@@ -4,7 +4,8 @@ shiny::shinyUI(
       id = "navtabs",
       shiny::tags$head(
         shiny::tags$link(rel = "stylesheet", type = "text/css", href = "app.css"),
-        shiny::tags$link(rel = "shortcut icon", href = "favicon.ico")
+        shiny::tags$link(rel = "shortcut icon", href = "favicon.ico"),
+        shiny::uiOutput('ga')
       ),
       title = "Rank-Heat Plot",
       shinyjs::useShinyjs(),

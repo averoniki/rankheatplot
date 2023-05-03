@@ -7,6 +7,14 @@ shiny::shinyServer(function(input, output, session) {
     includeHTML(path = file.path(projectRoot, "about.html"))
   })
 
+  output$ga <- renderUI({
+    if(!is.na(env["APP_ENV"]) & env["APP_ENV"] == "production"){
+      includeHTML(path = file.path(projectRoot, "ga.html"))
+    } else {
+      ""
+    }
+  })
+
   output$plotShot <- renderImage({
     list(src = file.path(projectRoot,
                          "www",

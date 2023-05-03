@@ -19,6 +19,7 @@ RUN install2.r --error \
 RUN R -e "BiocManager::install('ComplexHeatmap')"
 
 ENV PROJECT_ROOT=/srv/shiny-server/rankheatplot
+ENV APP_ENV=production
 
 COPY ./src/rankheatplot/R /srv/shiny-server/rankheatplot
 
