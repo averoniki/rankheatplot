@@ -11,6 +11,31 @@ body {
   width: 100%;
 }
 
+
+@media only screen and (min-width: 500px) {
+  .navbar .container-fluid {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.faq-container {
+  max-width: 1500px;
+}
+
+#faq .q {
+  font-weight: bold;
+}
+
+#about-rank-heat-plot {
+  text-align: center;
+}
+
+.navbar-brand {
+  height: auto;
+  line-height: inherit;
+}
+
 .citation {
   font-size: .75em;
 }
@@ -51,13 +76,18 @@ body {
   display: flex;
 }
 
-
 .mt-5 {
   margin-bottom: 5px;
 }
 
 .mt-5 {
   margin-top: 5px;
+}
+
+.flex-col-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .navbar {
@@ -76,11 +106,6 @@ body {
 .tabbable .tab-heading {
   margin: 10px;
   padding: 10px;
-}
-
-.viewer-data-table-row {
-  display: flex;
-  justify-content: center;
 }
 
 /*

@@ -26,7 +26,8 @@ rhp.rankheatplotCircos <-
            format = "percentage",
            cexLabel = .65,
            cexValue = .75,
-           cexSector = 1) {
+           cexSector = 1,
+           numberLegend = F) {
     rns <- rownames(chartData)
     # add explicit row for outcomes
     chartData[nrow(chartData) + 1, ] <- colnames(chartData)
@@ -54,7 +55,7 @@ rhp.rankheatplotCircos <-
     circlize::circos.par(
       start.degree = startDegree,
       gap.degree = gapDegree,
-      canvas.ylim = c(-1.3, 1.3),
+      canvas.ylim = c(-1.1, 1),
       points.overflow.warning = FALSE
     )
 
@@ -92,7 +93,11 @@ rhp.rankheatplotCircos <-
          )
        } else {
          # facing='bending' requires a loop rather than vector args
-         lbls = rev(names(chartData))
+         if(numberLegend){
+           lbls = as.character(1:length(names(chartData)))
+         } else {
+           lbls = rev(names(chartData))
+         }
          for (i in 1:n) {
            circlize::circos.text(
              circlize::CELL_META$cell.xlim[2] / 2 ,
@@ -109,6 +114,7 @@ rhp.rankheatplotCircos <-
     )
 
     # we'll roll our own sector labels so we have control over cex
+    # bah we need index
      for (nm in rownames(chartData)) {
        circlize::set.current.cell(sector.index = nm, track.index = 1)
 
@@ -121,15 +127,24 @@ rhp.rankheatplotCircos <-
          adj = c(0.5, 0),
          cex=cexSector
        )
-
      }
 
-    lgd = ComplexHeatmap::Legend(col_fun = colFun, direction = "horizontal")
+    # we need to show both legends, but second is togglabe
+    lgds <- list()
+    lgds$lgd1 <- ComplexHeatmap::Legend(col_fun = colFun, direction = "horizontal", title="Score",
+                    title_position = 'topcenter')
+    if(numberLegend){
+        lgds$lgd2 <- ComplexHeatmap::Legend(labels = paste0(length(names(chartData)):1, ": ", rev(names(chartData))),
+                      title = "Outcomes", type = "grid", background = "white", title_position = 'topcenter')
+    }
+
+    legends <- do.call(ComplexHeatmap::packLegend, c(lgds,direction="horizontal"))
+
     ComplexHeatmap::draw(
-      lgd,
-      x = grid::unit(.5, "npc"),
-      y = grid::unit(.1, "npc"),
-      just = c("center")
+      legends,
+      x = grid::unit(7, "mm"),
+      y = grid::unit(2, "mm"),
+      just = c("left", "bottom")
     )
 
   }

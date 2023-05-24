@@ -127,7 +127,14 @@ shiny::shinyUI(
                       max = 2,
                       value = 1
                     ),
-                  )
+                  ),
+                  shiny::div(
+                    shiny::checkboxInput(
+                      "numberLegend",
+                      "Number Labels",
+                      value=FALSE
+                    ),
+                  ),
                 )
               )
             )
@@ -137,11 +144,13 @@ shiny::shinyUI(
               shiny::column(12, shiny::downloadButton("heatmapDownload")),
               shiny::fluidRow(
                 shiny::column(12,
-                  shiny::plotOutput("heatmap", width = "100%", height = "700px")
+                  class="flex-col-center",
+                  shiny::plotOutput("heatmap", height="700px", width="700px")
                 )
               ),
               shiny::fluidRow(
                 shiny::column(
+                  class = "mt-5 flex-col-center",
                   width = 12,
                   class = "viewer-data-table-row",
                   shiny::tableOutput("dataTable")
@@ -155,8 +164,8 @@ shiny::shinyUI(
         title = "Tutorial and FAQ",
         value = "tutorial_faq",
         shiny::fluidRow(
-          class = "tutoria-faq-panel",
           shiny::column(12,
+            class = "flex-col-center",
             shiny::h1("Video Tutorial"),
             shiny::p("The video below provides a step-by-step demonstration of
                      how to use the Rank-Heat Plot with example data."),
@@ -169,9 +178,8 @@ shiny::shinyUI(
                                allowfullscreen="allowfullscreen"
                               )
           ),
-          shiny::column(12,
-            shiny::h1("FAQ"),
-            shiny::p("Coming soon...")
+          shiny::column(12, shiny::hr()),
+          shiny::column(12, class = "flex-col-center", shiny::htmlOutput("faq")
           )
         ) # end fluid row
       ) # end FAQ tab panel

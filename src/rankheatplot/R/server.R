@@ -6,6 +6,9 @@ shiny::shinyServer(function(input, output, session) {
   output$about <- renderUI({
     includeHTML(path = file.path(projectRoot, "about.html"))
   })
+  output$faq <- renderUI({
+    includeHTML(path = file.path(projectRoot, "faq.html"))
+  })
 
   output$ga <- renderUI({
     if(!is.na(env["APP_ENV"]) & env["APP_ENV"] == "production"){
@@ -251,7 +254,8 @@ shiny::shinyServer(function(input, output, session) {
           formattedValues(),
           cexLabel = input$cexLabel,
           cexValue = input$cexValue,
-          cexSector = input$cexSector
+          cexSector = input$cexSector,
+          numberLegend = input$numberLegend
         )
       })
       output$heatmapDownload <- downloadHandler(
@@ -781,7 +785,6 @@ rankToDf <- function(ranking, outcome) {
   names(df) <- c("Treatment", outcome)
   df
 }
-
 
 # This function returns TRUE wherever elements are the same, including NA's,
 # and FALSE everywhere else.

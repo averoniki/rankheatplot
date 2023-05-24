@@ -1,0 +1,77 @@
+<div class="faq-container">
+  <h1 id="about-rank-heat-plot">FAQ</h1>
+  <p class="q">Q: What is rank-heat plot?</p>
+  <p class="a">
+    A: The rank-heat plot summarizes results from a network meta-analysis on all
+    interventions and all outcomes, providing information regarding the ranking
+    of interventions per outcome. It is a visualization technique that combines
+    the features of a heatmap and a ranked bar chart across multiple outcomes.
+    It allows for the simultaneous comparison of multiple interventions across
+    different outcomes.
+  </p>
+  <p class="q">Q: How does rank-heat plot work?</p>
+  <p class="a">
+    A: The rank-heat plot displays the hierarchy for the total number of
+    treatments (presented in different radii) across all outcomes (presented in
+    different concentric circles) with respect to their effectiveness and
+    safety. The intervention rankings are colour-coded using a gradient color
+    scheme (red, yellow, and green), indicating their magnitude. The
+    colour-coded ranking scale ranges from the red to green, representing the
+    lowest (red) to the highest (green) value of the ranking statistic. Only the
+    colour of each sector is interpretable. The area of each sector does not
+    convey any information. Uncoloured sectors suggest that data on that outcome
+    were not reported for the particular treatment in the trials included in the
+    network meta-analysis. The ranking statistic values are also displayed on
+    the plot.
+  </p>
+  <p class="q">Q: What are the advantages of using a rank-heat plot?</p>
+  <p class="a">
+    A: The rank-heat plot provides a comprehensive and intuitive visual overview
+    of intervention rankings across outcomes. It allows for easy identification
+    of high-ranking or low-ranking interventions within each outcome, with
+    respect to their effectiveness and/or safety. It also facilitates pattern
+    recognition and comparisons between interventions. It can also identify
+    interventions that have not been studied for an included outcome. The tool
+    can be used to facilitate interpretation and decision-making based on NMA
+    synthesis.
+  </p>
+  <p class="q">Q: What type of data is suitable for rank-heat plot?</p>
+  <p class="a">
+    A: The rank-heat plot is suitable for any type of outcome data that involve
+    multiple (i.e., >2) interventions and outcomes, from any type of discipline
+    and disease and any type of review (i.e., systematic review, rapid review,
+    overview of reviews). It can produce the rank-heat plot when the study-level
+    data for each outcome are available, and without performing the NMA analysis
+    outside the tool.
+  </p>
+  <p class="q">Q: Can rank-heat plot handle large datasets?</p>
+  <p class="a">
+    A: Yes, the rank-heat plot can handle large datasets with a large number of
+    interventions and outcomes. However, it is important to ensure that the plot
+    remains readable and interpretable by adjusting the plot size and presented
+    text (e.g., outcome and treatment names and numerical ranking values)
+    appropriately.
+  </p>
+  <p class="q">
+    Q: Are there any software packages or libraries used to create a rank-heat
+    plot?
+  </p>
+  <p class="a">
+    A: Yes, currently the rank-heat plot performs analyses in a frequentist
+    framework importing intervention outcome results from the netmeta R package,
+    where the network meta-analysis is performed for each outcome separately. In
+    the next version of the tool, we plan to incorporate the option of
+    conducting the analysis in a Bayesian framework, as well as outputs based on
+    clinically important effects (e.g., minimal clinically important
+    difference).
+  </p>
+  <p class="q">Q: How can I interpret a rank-heat plot?</p>
+  <p class="a">
+    A: In a rank-heat plot, high-ranking interventions are represented by darker
+    green colours, while low-ranking interventions are represented by darker red
+    colours. By comparing the colours within each category and examining the
+    rank values, you can identify the interventions that perform relatively
+    better or worse across the outcomes with respect to their effectiveness
+    and/or safety.
+  </p>
+</div>
