@@ -138,7 +138,7 @@ shiny::shinyServer(function(input, output, session) {
                 inline = T,
                 label = "Select Small Values",
                 choiceNames = c("Good", "Bad"),
-                choiceValues = c("good", "bad"),
+                choiceValues = c("desirable", "undesirable"),
                 selected = character(0)
               ),
             ),
@@ -640,6 +640,7 @@ armToContrast <- function(sheet, options) {
       args$n <- sheet[['n']]
       args$m <- sheet[['m']]
       args$sd <- sheet[['sd']]
+      args$sm <- options$sm
     }
     if (options[['outcomeType']] == "tte") {
       args$event <- sheet[['d']]
@@ -659,17 +660,19 @@ armToContrast <- function(sheet, options) {
 #'   a shape compatible with netmeta
 #' @return dataframe, dataframe that can be passed to rank heat plot function
 getNetmeta <- function(options, transformed) {
+  sm <- toupper(options$sm)
   netmetaArgs <-
     list(
       data = transformed,
-      sm = options$sm,
+      sm = sm,
       common = options$model == "common",
       random = options$model != "common",
       TE = transformed[['TE']],
       seTE = transformed[['seTE']],
       studlab = transformed[['studlab']],
       treat1 = transformed[['treat1']],
-      treat2 = transformed[['treat2']]
+      treat2 = transformed[['treat2']],
+      small.values = options$smallValues
     )
 
   if (options$model == "common") {
@@ -688,10 +691,7 @@ getNetmeta <- function(options, transformed) {
 getRanks <- function(options, netmetaRes, sheetName) {
   ranked <- netmeta::netrank(
     x = netmetaRes,
-    method = options$method,
     small.values = options$smallValues,
-    common = options$model == "common",
-    random = options$model != "common"
   )
 
   if (options$model == "common") {
@@ -735,7 +735,6 @@ getFormattedData <- function(options, sheets) {
 #' @return dataframe, dataframe that can be passed to rank heat plot function if successful,
 #' else a list of fields that failed the connectivity test
 computeNetMeta <- function(opts, sheets){
-
   errors <- list()
   netmetaRes <-
     mapply(getNetmeta,
