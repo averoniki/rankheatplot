@@ -88,6 +88,14 @@ shiny::shinyServer(function(input, output, session) {
                         text = "Drag the labels below to order the treatments in the plot")
   }), sheetList(), ignoreNULL = T)
 
+  output$outcomeList <- bindEvent(shiny::renderUI({
+    req(sheetList())
+    ol <- names(sheetList())
+    sortable::rank_list(input_id = "outcomeList",
+                        labels = ol,
+                        text = "Drag the labels below to order the outcomes in the plot")
+  }), sheetList(), ignoreNULL = T)
+
   # BUILDING THE FORM
   # This will create the UI with an identical tab for each uploaded sheet
   observeEvent(sheetList(), {
@@ -227,7 +235,6 @@ shiny::shinyServer(function(input, output, session) {
         shinybusy::show_modal_spinner()
         formatted <-
           getFormattedData(options, sheetList())
-
         shinybusy::remove_modal_spinner()
         # check if we got an error list back
         if (!is.data.frame(formatted)) {
@@ -237,7 +244,7 @@ shiny::shinyServer(function(input, output, session) {
           output$sheetValidationHeading <- NULL
           output$sheetValidationMsg <-
             renderUI(NULL)
-          formatted[input$treatmentList, , drop = F]
+          formatted[input$treatmentList, input$outcomeList, drop = F]
         }
       }, error = {
         shinybusy::remove_modal_spinner()
@@ -289,7 +296,7 @@ setLoadedUI <- function() {
   shinyjs::show('startOver')
   shinyjs::show(selector = ".dynamic-tabs-container")
   shinyjs::show(selector = '.submit-buttons')
-  shinyjs::show('treatmentList')
+  shinyjs::show(selector = '.reorder-tabs')
   shinyjs::disable('submit')
 }
 
@@ -298,7 +305,7 @@ unsetLoadedUI <- function() {
   shinyjs::enable('userData')
   shinyjs::hide('startOver')
   shinyjs::hide(selector = '.submit-buttons')
-  shinyjs::hide("treatmentList")
+  shinyjs::hide(selector = '.reorder-tabs')
   shinyjs::hide(selector = ".dynamic-tabs-container")
 }
 

@@ -60,10 +60,13 @@ shiny::shinyUI(
                 )
               )
             ),
-            shiny::fluidRow(class = "treatment-list",
+            shiny::fluidRow(class = "reorder-tabs",
               shiny::column(
                 9, class = "mt-5 mb-5",
-                shiny::uiOutput('treatmentList')
+                tabsetPanel(type = "tabs",
+                  tabPanel("Treatment Order", shiny::uiOutput('treatmentList')),
+                  tabPanel("Outcome Order", shiny::uiOutput('outcomeList'))
+                )
               )
             )
           ),
