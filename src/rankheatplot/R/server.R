@@ -94,7 +94,7 @@ shiny::shinyServer(function(input, output, session) {
     sortable::rank_list(input_id = "outcomeList",
                         labels = ol,
                         text = "Drag the labels below to order the outcomes in the plot")
-  }), sheetList(), ignoreNULL = T)
+  }), sheetList())
 
   # BUILDING THE FORM
   # This will create the UI with an identical tab for each uploaded sheet
@@ -244,7 +244,13 @@ shiny::shinyServer(function(input, output, session) {
           output$sheetValidationHeading <- NULL
           output$sheetValidationMsg <-
             renderUI(NULL)
-          formatted[input$treatmentList, input$outcomeList, drop = F]
+          # outcomeList will be null if user never used it
+          if(is.null(input$outcomeList)){
+            cols <- names(formatted)
+          } else {
+            cols <- input$outcomeList
+          }
+          formatted[input$treatmentList, cols, drop = F]
         }
       }, error = {
         shinybusy::remove_modal_spinner()

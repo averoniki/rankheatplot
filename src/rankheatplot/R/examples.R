@@ -1,5 +1,5 @@
 #circos example
-run_circos_example <- function(type = 'medium', test_file_path = "/home/rstudio/src/data/allstudy-small.xlsx") {
+run_circos_example <- function(type = 'medium', test_file_path = "/home/rstudio/src/rankheatplot/R/www/allstudy-small.xlsx") {
   data <- readxl::read_excel(test_file_path, sheet = 1)
   df <- as.data.frame(data)
   chartData <- rhp.prepData(df)
