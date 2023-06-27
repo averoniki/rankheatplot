@@ -1,0 +1,48 @@
+services:
+  shiny-server:
+    build:
+      dockerfile: Dockerfile.server
+      context: ./rankheatplot
+    restart: always
+    environment:
+      - PROJECT_ROOT=${PROJECT_ROOT_PROD}
+      - APP_ENV
+    networks:
+      - rankheat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.middleware00.addprefix.prefix=rankheatplot"
+      - "traefik.http.routers.shiny-server.rule=Host(`localhost`)"
+      # - "traefik.http.routers.shiny-servesr.entrypoints=websecure"
+      - "traefik.http.routers.shiny-server.middlewares=middleware00"
+      - "traefik.http.routers.shiny-server.entrypoints=web"
+      # - "traefik.http.routers.shiny-servesr.tls=true"
+      - "traefik.http.services.shiny-server.loadbalancer.server.port=3838"
+  traefik:
+    image: traefik:v2.4
+    command:
+      - --accesslog
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --entrypoints.web.address=:80
+      - --log.level={TRAEFIK_LOG_LEVEL}
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=rankheat
+      # - --entrypoints.websecure.address=:443
+      # - --certificatesresolvers.myresolver.acme=true
+      # - --certificatesresolvers.myresolver.acme.email=your-email@example.com
+      # - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      # - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
+    ports:
+      - 80:80
+      - 8080:8080 # dashboard
+      - 443:443
+    networks:
+      - rankheat
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - ./traefik/letsencrypt:/letsencrypt
+
+networks:
+  rankheat:

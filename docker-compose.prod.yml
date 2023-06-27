@@ -1,10 +1,8 @@
-version: "3.6"
-
 services:
   shiny-server:
     build:
       dockerfile: Dockerfile.server
-      context: .
+      context: ./rankheatplot
     restart: always
     networks:
       - rankheat

@@ -1,20 +1,21 @@
-version: "3.6"
-
 services:
   rstudio:
-    build: 
+    build:
       context: ./
     container_name: rstudio
     restart: on-failure
     volumes:
-      - ./src:/home/rstudio/src
+      - ./rankheatplot:/home/rstudio/rankheatplot
     networks:
       - rankheat
     environment:
-      - PASSWORD=rstudio1
+      - APP_ENV
       - DISABLE_AUTH=true
+      - PASSWORD=rstudio1
+      - PROJECT_ROOT
+      - R_STUDIO_PORT
     ports:
-      - 8852:8787
+      - ${R_STUDIO_PORT}:8787
 
 networks:
   rankheat:
