@@ -81,10 +81,12 @@ shiny::shinyServer(function(input, output, session) {
   })
 
   output$treatmentList <- bindEvent(shiny::renderUI({
+
     req(sheetList())
     tl <- getTreatmentList(sheetList())
     sortable::rank_list(input_id = "treatmentList",
                         labels = tl,
+                        css_id=NULL,
                         text = "Drag the labels below to order the treatments in the plot")
   }), sheetList(), ignoreNULL = T)
 
@@ -93,6 +95,7 @@ shiny::shinyServer(function(input, output, session) {
     ol <- names(sheetList())
     sortable::rank_list(input_id = "outcomeList",
                         labels = ol,
+                        css_id=NULL,
                         text = "Drag the labels below to order the outcomes in the plot")
   }), sheetList())
 
@@ -222,6 +225,7 @@ shiny::shinyServer(function(input, output, session) {
 
   # bind formatted data object to submit button
   formattedValues <- bindEvent(reactive({
+
     options <-
       groupValues(input, names(sheetList()))
     invalid <-
@@ -252,7 +256,7 @@ shiny::shinyServer(function(input, output, session) {
           }
           formatted[input$treatmentList, cols, drop = F]
         }
-      }, error = {
+      }, error = function(err){
         shinybusy::remove_modal_spinner()
         NULL
       })
