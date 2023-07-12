@@ -234,7 +234,6 @@ shiny::shinyServer(function(input, output, session) {
       createErrorDisplayList(errorList = invalid, output = output)
       NULL
     }  else {
-
       tryCatch({
         shinybusy::show_modal_spinner()
         formatted <-
@@ -258,6 +257,8 @@ shiny::shinyServer(function(input, output, session) {
         }
       }, error = function(err){
         shinybusy::remove_modal_spinner()
+        message(as.character(err))
+        createErrorDisplayList(errorList = list(unknown=as.character(err)), output = output)
         NULL
       })
     }
