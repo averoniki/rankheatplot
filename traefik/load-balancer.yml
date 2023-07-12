@@ -5,6 +5,8 @@ http:
       service: backend
       tls:
         certResolver: defaultresolver
+      middlewares:
+        - redirectToSite
 
   services:
     backend:
@@ -15,6 +17,11 @@ http:
         sticky:
           cookie: {}
 
+  middlewares:
+    redirectToSite:
+      redirectRegex:
+        regex: "^https://([^/]+)/?$"
+        replacement: "https://$1/rankheatplot/"
 tls:
   certificates:
     - certFile: /fullchain.pem
