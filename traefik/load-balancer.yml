@@ -1,0 +1,21 @@
+http:
+  routers:
+    https_router:
+      rule: "Host(`rankheatplot.com`)"
+      service: backend
+      tls:
+        certResolver: defaultresolver
+
+  services:
+    backend:
+      loadBalancer:
+        servers:
+          - url: "http://shiny-server-1:3838"
+          - url: "http://shiny-server-2:3838"
+        sticky:
+          cookie: {}
+
+tls:
+  certificates:
+    - certFile: /fullchain.pem
+      keyFile: /privkey.pem

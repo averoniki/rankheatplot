@@ -1,0 +1,28 @@
+# Static configuration
+entryPoints:
+  secure:
+    address: :443
+  insecure:
+    address: :80
+    http:
+      redirections:
+        entrypoint:
+          to: secure
+          scheme: https
+
+log:
+  level: DEBUG
+
+accesslog: true
+
+providers:
+  file:
+    filename: /load-balancer.yml
+    watch: true
+
+certificatesResolvers:
+  defaultresolver:
+    acme:
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: insecure

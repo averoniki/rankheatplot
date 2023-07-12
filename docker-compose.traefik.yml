@@ -1,0 +1,43 @@
+version: "3.6"
+
+services:
+  shiny-server-1:
+    build:
+      dockerfile: Dockerfile.server
+      context: .
+    restart: always
+    networks:
+      - rankheat
+  shiny-server-2:
+    build:
+      dockerfile: Dockerfile.server
+      context: .
+    restart: always
+    networks:
+      - rankheat
+  traefik:
+    restart: always
+    image: traefik:v2.10
+    environment:
+      - PRIVKEY_PATH
+      - FULLCHAIN_PATH
+      - LETS_ENCRYPT_EMAIL
+    volumes:
+      - ./traefik/traefik.yml:/traefik.yml
+      - ./traefik/load-balancer.yml:/load-balancer.yml
+      - ./traefik/letsencrypt:/letsencrypt
+      - ${FULLCHAIN_PATH}:/fullchain.pem
+      - ${PRIVKEY_PATH}:/privkey.pem
+    networks:
+      - rankheat
+    command:
+      - --certificatesresolvers.defaultresolver.acme.email=${LETS_ENCRYPT_EMAIL}
+    depends_on:
+      - shiny-server-1
+      - shiny-server-2
+    ports:
+      - 80:80
+      - 443:443
+
+networks:
+  rankheat:
