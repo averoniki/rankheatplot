@@ -14,6 +14,9 @@ http:
         servers:
           - url: "http://shiny-server-1:3838"
           - url: "http://shiny-server-2:3838"
+          - url: "http://shiny-server-3:3838"
+          - url: "http://shiny-server-4:3838"
+          - url: "http://shiny-server-5:3838"
         sticky:
           cookie: {}
 
@@ -22,7 +25,3 @@ http:
       redirectRegex:
         regex: "^https://([^/]+)/?$"
         replacement: "https://$1/rankheatplot/"
-tls:
-  certificates:
-    - certFile: /fullchain.pem
-      keyFile: /privkey.pem
