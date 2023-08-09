@@ -80,6 +80,10 @@ shiny::shinyServer(function(input, output, session) {
     }
   })
 
+  optionGroupNames <- reactive({
+    replaceSpaces(names(sheetList()))
+  })
+
   output$treatmentList <- bindEvent(shiny::renderUI({
 
     req(sheetList())
@@ -118,7 +122,7 @@ shiny::shinyServer(function(input, output, session) {
             column(
               4,
               radioButtons(
-                inputId = paste0(name, "_option_dataFormat"),
+                inputId = replaceSpaces(paste0(name, "_option_dataFormat")),
                 inline = T,
                 label = "Select Data Format",
                 choiceNames = c("Arm Level", "Contrast Level"),
@@ -126,64 +130,64 @@ shiny::shinyServer(function(input, output, session) {
                 selected = character(0)
               ),
               radioButtons(
-                inputId = paste0(name, "_option_outcomeType"),
+                inputId = replaceSpaces(paste0(name, "_option_outcomeType")),
                 inline = T,
                 label = "Select Outcome Type",
-                choiceNames = c("Binary", "Continuous", "Time to Event", "Survival"),
-                choiceValues = c("binary", "continuous", "tte", "survival"),
+                choiceNames = c("Binary", "Continuous", "Count", "Survival"),
+                choiceValues = c("binary", "continuous", "count", "survival"),
                 selected = character(0)
+              )
+            ),
+            column(
+              4,
+                radioButtons(
+                  inputId = replaceSpaces(paste0(name, "_option_sm")),
+                  inline = T,
+                  label = "Select Effect Size",
+                  choiceNames = c("OR", "RR", "RD", "MD", "SMD", "ROM", "IRR", "HR"),
+                  choiceValues = c("or", "rr", "rd", "md", "smd", "rom", "irr", "hr"),
+                  selected = character(0)
+              ),
+                radioButtons(
+                  inputId = replaceSpaces(paste0(name, "_option_smallValues")),
+                  inline = T,
+                  label = "Select Small Values",
+                  choiceNames = c("Good", "Bad"),
+                  choiceValues = c("desirable", "undesirable"),
+                  selected = character(0)
               ),
             ),
             column(
               4,
-              radioButtons(
-                inputId = paste0(name, "_option_sm"),
-                inline = T,
-                label = "Select Effect Size",
-                choiceNames = c("OR", "RR", "RD", "MD", "SMD", "ROM", "IRR", "HR"),
-                choiceValues = c("or", "rr", "rd", "md", "smd", "rom", "irr", "hr"),
-                selected = character(0)
+                radioButtons(
+                  inputId = replaceSpaces(paste0(name, "_option_model")),
+                  inline = T,
+                  label = "Select Model",
+                  choiceNames = c("Common effect", "Random effects"),
+                  choiceValues = c("common", "random"),
+                  selected = character(0)
               ),
-              radioButtons(
-                inputId = paste0(name, "_option_smallValues"),
-                inline = T,
-                label = "Select Small Values",
-                choiceNames = c("Good", "Bad"),
-                choiceValues = c("desirable", "undesirable"),
-                selected = character(0)
+                radioButtons(
+                  inputId = replaceSpaces(paste0(name, "_option_methodTau")),
+                  inline = T,
+                  label = "Select Method.tau",
+                  choiceNames = c("REML", "ML", "DL"),
+                  choiceValues = c("reml", "ml", "dl"),
+                  selected = character(0)
               ),
-            ),
-            column(
-              4,
-              radioButtons(
-                inputId = paste0(name, "_option_model"),
-                inline = T,
-                label = "Select Model",
-                choiceNames = c("Common effect", "Random effects"),
-                choiceValues = c("common", "random"),
-                selected = character(0)
-              ),
-              radioButtons(
-                inputId = paste0(name, "_option_methodTau"),
-                inline = T,
-                label = "Select Method.tau",
-                choiceNames = c("REML", "ML", "DL"),
-                choiceValues = c("reml", "ml", "dl"),
-                selected = character(0)
-              ),
-              radioButtons(
-                inputId = paste0(name, "_option_method"),
-                inline = T,
-                label = "Select Rank Statistic",
-                choiceNames = c("SUCRA", "P-Score"),
-                choiceValues = c("SUCRA", "P-score"),
-                selected = character(0)
+                radioButtons(
+                  inputId = replaceSpaces(paste0(name, "_option_method")),
+                  inline = T,
+                  label = "Select Rank Statistic",
+                  choiceNames = c("SUCRA", "P-Score"),
+                  choiceValues = c("SUCRA", "P-score"),
+                  selected = character(0)
               )
             )
           ),
           shiny::fluidRow(shiny::column(
             12,
-            shiny::dataTableOutput(outputId = paste0(name, 'Table'))
+            shiny::dataTableOutput(outputId = replaceSpaces(paste0(name, 'Table')))
           ),)
         )
       )
@@ -194,12 +198,14 @@ shiny::shinyServer(function(input, output, session) {
 
   # Observe *all* changes to input and update visibility/choices
   observe({
-    # group options together and key by sheet name
-    options <- groupValues(input, names(sheetList()))
+    # group options together and key by converted sheet name
+    options <- groupValues(input, optionGroupNames())
     # loop through options and update ui as needed
-    for (sheetName in names(options)) {
+
+    for (optionGroupName in names(options)) {
       for (option in names(visibilityUpdaters)) {
-        visibilityUpdaters[[option]]$update(options, sheetName)
+        # updaters rely on css id, so we'll convert sheet names
+        visibilityUpdaters[[option]]$update(options, optionGroupName)
       }
     }
     # if there are no missing fields, enable submit button
@@ -208,13 +214,14 @@ shiny::shinyServer(function(input, output, session) {
     }
   })
 
+ # apply to all
   observeEvent(input$useAll, {
-    options <- groupValues(input, names(isolate(sheetList())))
-
-    selected = options[[input$dynamicTabs]]
-
-    for (sheetName in names(isolate(sheetList()))) {
+    options <- groupValues(input, optionGroupNames())
+    # dynamicTabs are display titles, but we need the space-free css/input id form
+    selected = options[[replaceSpaces(input$dynamicTabs)]]
+    for (sheetName in optionGroupNames()) {
       for (option in names(selected)) {
+
         updateRadioButtons(
           inputId = paste0(sheetName, "_option_", option),
           selected = paste0(selected[[option]])
@@ -227,7 +234,7 @@ shiny::shinyServer(function(input, output, session) {
   formattedValues <- bindEvent(reactive({
 
     options <-
-      groupValues(input, names(sheetList()))
+      groupValues(input, optionGroupNames())
     invalid <-
       validateSheets(options, sheetList())
     if (length(invalid)) {
@@ -368,6 +375,7 @@ getTreatmentList <- function(sheetList) {
 # list of functions, one per possible input
 # each is in charge of showing/hiding itself and setting its value or options
 # according to 'upstream' selections
+# note that sheetName has been stripped of spaces
 visibilityUpdaters <- list(
   outcomeType = list(
     update = function(allValues, sheetName) {
@@ -388,13 +396,13 @@ visibilityUpdaters <- list(
       outcomeType = allValues[[sheetName]][['outcomeType']]
       selected = allValues[[sheetName]][['sm']]
       # always start by enabling everything...
-      shinyjs::enable(selector = paste0("#", id))
+      shinyjs::enable(selector = paste0("#",id))
       if (!is.null(outcomeType)) {
         if (outcomeType == 'binary') {
           disableOptions(id, c('smd', 'hr', 'md', 'rom', 'irr'), selected)
         } else if (outcomeType == 'continuous') {
           disableOptions(id, c('rr', 'hr', 'or', 'rd', 'irr'), selected)
-        } else if (outcomeType == 'tte') {
+        } else if (outcomeType == 'count') {
           disableOptions(id,
                          c('rr', 'hr', 'or', 'rd', 'rom', 'md', 'smd'),
                          selected)
@@ -410,7 +418,7 @@ visibilityUpdaters <- list(
     update = function(allValues, sheetName) {
       id <- paste0(sheetName, "_option_methodTau")
       model <- allValues[[sheetName]][['model']]
-      selector <- paste0("#", id)
+      selector <- paste0("#",id)
       # always start by enabling everything...
       shinyjs::show(selector = selector)
       if (!is.null(model)) {
@@ -431,8 +439,9 @@ visibilityUpdaters <- list(
 validateSheets <- function(optionSet, sheets) {
   results <- list()
   for (sheetName in names(sheets)) {
+    # remember that keys to options groups have had spaces stripped
     errors <-
-      validateSheet(optionSet[[sheetName]], sheets[[sheetName]])
+      validateSheet(optionSet[[replaceSpaces(sheetName)]], sheets[[sheetName]])
     if (length(errors)) {
       results[[sheetName]] <- errors
     }
@@ -465,7 +474,7 @@ validateSheet <- function(options, sheet) {
       )
       results <- checkTypeAndExistence(sheet, c(required, tm))
     }
-    if (options[['outcomeType']] == "tte") {
+    if (options[['outcomeType']] == "count") {
       tm <- list(
         d = list(type = "integer", gt = "e0"),
         time = list(type = "numeric", gt = "0")
@@ -578,6 +587,7 @@ getMissingOptions <- function(optionSet) {
 #' @return void
 disableOptions <- function(id, values, selected) {
   # if selected value is in the disallowed values, set to null
+
   if (!is.null(selected) && selected %in% values) {
     updateRadioButtons(inputId = id, selected = character(0))
   }
@@ -589,7 +599,7 @@ disableOptions <- function(id, values, selected) {
 #' @param id string, the id (not selector) of the option group
 #' @returns void
 disableOption <- function(value, id) {
-  selector <- getRadioInputSelector(id, value)
+  selector <- getRadioOptionSelector(id, value)
   shinyjs::disable(selector = selector)
 }
 
@@ -597,8 +607,22 @@ disableOption <- function(value, id) {
 #' @param id string, the id (not selector) of the radio group
 #' @param value string, the value of the option
 #' @return string
-getRadioInputSelector <- function(id, value) {
-  paste0("#", id, " [type=radio][value=", value, "]")
+getRadioOptionSelector <- function(id, value) {
+  paste0("#", id, " [value=", value, "]")
+}
+
+# create an id selector for the element that does not include spaces
+#' @param id string
+#' @return string
+replaceSpaces <- function(name) {
+  stringi::stri_replace_all(name, "___", regex=" ")
+}
+
+# Return the original name from the space-stipped name
+#' @param id string
+#' @return string
+reinstateSpaces <- function(name) {
+  stringi::stri_replace_all(name, " ", regex="___")
 }
 
 #' @param valueList the list of variables, probably reactiveValues
@@ -613,7 +637,7 @@ groupValues <- function(valueList, prefixVec) {
   for (key in names(valueList)) {
     # first, does the key contain the {prefixVec}_option_ string? if so, extract and save value
     prefix <- stringr::str_remove(key, "_option.+")
-    # first, check if key is in prefix list by stripping everything else
+    # then, check if key is in prefix list by stripping everything else
     if (prefix %in% prefixVec &&
         stringr::str_detect(key, paste0(prefix, "_option_"))) {
       optionName <- stringr::str_remove(key, paste0(prefix, "_option_"))
@@ -660,7 +684,7 @@ armToContrast <- function(sheet, options) {
       args$sd <- sheet[['sd']]
       args$sm <- options$sm
     }
-    if (options[['outcomeType']] == "tte") {
+    if (options[['outcomeType']] == "count") {
       args$event <- sheet[['d']]
       args$time <- sheet[['time']]
       args$data <- sheet
@@ -722,14 +746,14 @@ getRanks <- function(options, netmetaRes, sheetName) {
 }
 
 #' format data to be passed to plotting function
-#' @param options list, list keyed by sheet of arguments to pass to functions
+#' @param options list, list keyed by input group name
 #' @param sheets list, list keyed by sheet name of user-supplied dataframes
 #' @return dataframe, dataframe that can be passed to rank heat plot function if successful,
 #' else a list of errors
 getFormattedData <- function(options, sheets) {
   errors <- list()
   # before passing to mapply, we have to make sure lists are in the same order
-  opts <- options[names(sheets)]
+  opts <- options[replaceSpaces(names(sheets))]
   transformed <- mapply(armToContrast, sheets, opts, USE.NAMES = T, SIMPLIFY = F)
 
   for(name in names(transformed)){
