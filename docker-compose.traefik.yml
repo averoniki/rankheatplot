@@ -6,6 +6,10 @@ services:
       dockerfile: Dockerfile.server
       context: .
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
     networks:
       - rankheat
   shiny-server-2:
