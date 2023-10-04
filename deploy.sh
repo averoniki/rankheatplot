@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# Run this script to bring up the "production" build after a code change
+# Run this script to bring up the shiny-server implementation of the application
 
 set -euo pipefail
 
